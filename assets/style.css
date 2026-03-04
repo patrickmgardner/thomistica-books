@@ -1,0 +1,65 @@
+body {
+  max-width: 720px;
+  margin: 100px auto;
+  padding: 0 28px;
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 20px;
+  line-height: 1.7;
+  color: #222;
+  background: #f8f7f4;
+}
+
+/* Paragraphs */
+
+p {
+  margin: 1.2em 0;
+}
+
+/* Headings */
+
+h1, h2, h3 {
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-top: 3em;
+  margin-bottom: 0.8em;
+}
+
+h1 {
+  font-size: 30px;
+}
+
+h2 {
+  font-size: 20px;
+}
+
+/* Links */
+
+a {
+  color: #1c3d5a;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(28, 61, 90, 0.3);
+}
+
+a:hover {
+  border-bottom: 1px solid rgba(28, 61, 90, 0.8);
+}
+
+/* Endnotes */
+
+.endnotes {
+  margin-top: 4em;
+  padding-top: 2em;
+  border-top: 1px solid #ccc;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.endnotes p {
+  margin: 0.8em 0;
+}
+
+sup {
+  font-size: 0.75em;
+  vertical-align: super;
+}
