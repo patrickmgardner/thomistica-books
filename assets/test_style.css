@@ -1,0 +1,143 @@
+body {
+  max-width: 720px;
+  margin: 100px auto;
+  padding: 0 28px;
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 20px;
+  line-height: 1.7;
+  color: #222;
+  background: #f8f7f4;
+}
+
+/* Paragraphs */
+
+p {
+  margin: 1.2em 0;
+}
+
+/* Headings */
+
+h1, h2, h3 {
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-top: 3em;
+  margin-bottom: 0.8em;
+}
+
+h1 {
+  font-size: 30px;
+}
+
+h2 {
+  font-size: 20px;
+}
+
+/* Links */
+
+a {
+  color: #1c3d5a;
+  text-decoration: none;
+}
+
+a:hover {
+  border-bottom: 1px solid rgba(28, 61, 90, 0.8);
+}
+
+/* Endnotes */
+
+.endnotes {
+  margin-top: 4em;
+  padding-top: 2em;
+  border-top: 1px solid #ccc;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.endnotes p {
+  margin: 0.8em 0;
+}
+
+sup {
+  font-size: 0.75em;
+  vertical-align: super;
+}
+
+body {
+  background: hsl(124, 10%, 21%); /* replace with your main-site color */
+  color: #222;
+  margin: 0;
+}
+
+.thomistica-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  margin-bottom: 2.5rem;
+}
+
+.reading-column {
+  max-width: 760px;
+  margin: 2rem auto 3rem auto;
+  padding: 2rem 2.5rem 3rem 2.5rem;
+  background: #f8f7f4; /* your off-white */
+  box-sizing: border-box;
+}
+
+p {
+  line-height: 1.7;
+  margin: 0 0 1rem 0;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.25;
+  margin-top: 2rem;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #d8d4cc;
+  margin: 2rem 0;
+}
+
+.thomistica-brand a,
+.thomistica-nav a {
+  font-family: Arial, Helvetica, sans-serif;
+  text-decoration: none;
+  color: #222;
+}
+
+.thomistica-brand a {
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.thomistica-nav a {
+  font-size: 0.9rem;
+}
+
+.thomistica-brand a:hover,
+.thomistica-nav a:hover {
+  text-decoration: underline;
+}
+
+.thomistica-header a {
+  border-bottom: none !important;
+}
+
+p {
+  line-height: 1.7;
+  margin: 0 0 1rem 0;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.25;
+  margin-top: 2rem;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #d8d4cc;
+  margin: 2rem auto;
+  max-width: 760px;
+}
