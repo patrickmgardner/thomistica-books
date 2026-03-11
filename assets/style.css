@@ -1,5 +1,7 @@
 body {
-  margin: 0;
+  max-width: 720px;
+  margin: 100px auto;
+  padding: 0 28px;
   background: #f8f7f4;
   color: #222;
   font-family: "Crimson Text", Georgia, serif;
