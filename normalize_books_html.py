@@ -77,8 +77,7 @@ def clean_one(path):
     body = split_body(text)
 
     if not body:
-        out = path.with_name(path.stem + "_clean.htm")
-        out.write_text(text)
+        path.write_text(text)
         return
 
     start, end, content = body
@@ -107,9 +106,7 @@ def clean_one(path):
 
     new_text = re.sub(r'\n{3,}', '\n\n', new_text)
 
-    out = path.with_name(path.stem + "_clean.htm")
-
-    out.write_text(new_text)
+    path.write_text(new_text)
 
 
 def main():
