@@ -63,3 +63,76 @@ sup {
   font-size: 0.75em;
   vertical-align: super;
 }
+
+.thomistica-header {
+  border-bottom: 1px solid #d8d4cc;
+  background: #f8f7f4;
+  margin-bottom: 2.5rem;
+}
+
+.thomistica-header-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.thomistica-brand a {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #222;
+}
+
+.thomistica-nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.thomistica-nav a {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: #444;
+}
+
+.thomistica-nav a:hover,
+.thomistica-brand a:hover {
+  text-decoration: underline;
+}
+
+body {
+  background: #f8f7f4;
+  color: #222;
+}
+
+body > *:not(.thomistica-header) {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+p {
+  line-height: 1.7;
+  margin: 0 0 1rem 0;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.25;
+  margin-top: 2rem;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #d8d4cc;
+  margin: 2rem auto;
+  max-width: 760px;
+}
