@@ -10,10 +10,8 @@ HEADER_HTML = """
     <div class="thomistica-brand">
       <a href="https://thomistica.net">Thomistica</a>
     </div>
-    <nav class="thomistica-nav" aria-label="Site">
-      <a href="https://thomistica.net">Home</a>
-      <a href="https://thomistica.net/about">About</a>
-      <a href="https://books.thomistica.net">Books</a>
+    <nav class="thomistica-nav" aria-label="Books site">
+      <a href="https://books.thomistica.net">Thomistic Revival Books</a>
     </nav>
   </div>
 </div>

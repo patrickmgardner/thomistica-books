@@ -80,30 +80,25 @@ sup {
   gap: 1rem;
 }
 
-.thomistica-brand a {
+.thomistica-brand a,
+.thomistica-nav a {
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 0.95rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   text-decoration: none;
   color: #222;
 }
 
-.thomistica-nav {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+.thomistica-brand a {
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .thomistica-nav a {
-  font-family: Arial, Helvetica, sans-serif;
   font-size: 0.9rem;
-  text-decoration: none;
-  color: #444;
 }
 
-.thomistica-nav a:hover,
-.thomistica-brand a:hover {
+.thomistica-brand a:hover,
+.thomistica-nav a:hover {
   text-decoration: underline;
 }
 
