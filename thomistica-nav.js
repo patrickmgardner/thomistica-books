@@ -100,7 +100,7 @@
     "#thn-header {",
     "  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;",
     "  height: 56px;",
-    "  background: #1a1a1a;",
+    "  background: #495A58;",
     "  border-bottom: 2px solid #8b7040;",
     "  display: flex; align-items: center;",
     "  font-family: 'Georgia', 'Times New Roman', serif;",
@@ -215,7 +215,7 @@
       title: "Thomistica — home",
     });
     wordmark.innerHTML =
-      "Thomi<span class='thn-dot'>&#x2027;</span>stica";
+      "Thomistica";
     header.appendChild(wordmark);
 
     // Separator
