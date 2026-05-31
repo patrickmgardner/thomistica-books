@@ -1,0 +1,73 @@
+<DOCTYPE html>
+
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="/assets/style.css">
+</head>
+  <body>
+
+	<h4><a href="LeoXIII/aeterni.htm">Aeterni Patris</a>, by Pope Leo XIII</h4>
+	<h4>St. Thomas Aquinas's Life and Works</h4>
+	<ul>
+		<li><a href="Conway/conway.htm">Saint Thomas Aquinas: A Biographical Study</a>, by Fr. Placid Conway, O.P.</li>
+		<li><a href="Kearney/summa.htm">Synopsis of the <i>Theological Summa</i> of St. Thomas Aquinas</a>, by L.F. Kearney, O.P.</li>
+		<li><a href="Rickaby-SCG/gc.htm">On God and His Creatures, from <i>Summa Contra Gentiles</i></a> by St. Thomas Aquinas, ed. Rickaby</li>
+	</ul>
+	<h4>Scripture and Catholicism</h4>
+	<ul>
+		<li><a href="Pegues/catsum.htm">Catechism of the <i>Summa Theologica</i> of St. Thomas Aquinas</a>, by Thomas P&egrave;gues, O.P.</li>
+		<li><a href="Coppens-Catholic/sscr.htm">A Systematic Study of the Catholic Religion</a>, by Rev. Charles Coppens, S.J.</li>
+		<li><a href="Barnes/westmin.htm">Westminster Lectures</a>, ed. by Rev. Francis Aveling</li>
+	</ul>
+	<h4>History of Philosophy</h4>
+	<ul>
+		<li><a href="Azarias/aatcc.htm">Aristotle and the Christian Church</a>, by Brother Azarias</li>
+		<li><a href="DeWulf/homp.htm">History of Medieval Philosophy</a>, by Maurice De Wulf</li>
+		<li><a href="Kennedy/staamp0.htm">St. Thomas Aquinas and Medieval Philosophy</a>, by D.J. Kennedy, O.P.</li>
+		<li><a href="Perrier/perrier.html">The Revival of Scholastic Philosophy in the Nineteenth Century</a>, by Joseph Louis Perrier</li>
+		<li><a href="Shahan/midages.htm">The Middles Ages: Sketches and Fragments (incomplete)</a>, by Thomas J. Shahan</li>
+		<li><a href="Stoeckl/hhp.htm">Handbook of the History of Philosophy</a>, by Dr. Albert St&ouml;ckl</li>
+		<li><a href="Turner/hop.htm">History of Philosophy</a>, by William Turner</li>
+		<li><a href="Rickaby-Schol/scholas1.htm">Scholasticism</a>, by Joseph Rickaby, S.J.</li>
+	</ul>
+	<h4>Modernism</h4>
+	<ul>
+		<li><a href="Bampton/mamt.htm">Modernism and Modern Thought</a>, by Fr. Bampton, S.J.</li>
+		<li><a href="Jones/oldtru.htm">Old Truths, Not Modernist Errors</a>, by Rev. Norbert Jones, C.R.L.</li>
+		<li><a href="Mercier/modern.htm">Modernism</a>, by Cardinal Mercier</li>
+		<li><a href="Pace/pace.htm">St. Thomas and Modern Thought</a>, by Edward A. Pace</li>
+	</ul>
+	<h4>Logic and Theories of Knowledge</h4>
+	<ul>
+		<li><a href="Coppens-Logic/lamp.htm">A Brief Text-Book of Logic and Mental Philosophy</a>, by Rev. Charles Coppens, S.J.</li>
+		<li><a href="Liberatore/univer.htm">On Universals: An Exposition of Thomistic Doctrine</a>, by Fr. Matteo Liberatore, S.J.</li>
+		<li><a href="Rickaby-Principles/first.htm">The First Principles of Knowledge</a>, by John Rickaby, S.J.</li>
+		<li><a href="Schumacher/kog.htm">The Knowableness of God. Its Relation to the Theory of Knowledge in St. Thomas</a>, by Matthew Schumacher, C.S.C.</li>
+		<li><a href="Walker/walker.htm">Theories of Knowledge: Absolutism, Pragmatism, Realism</a>, by Leslie J. Walker, S.J.</li>
+	</ul>
+	<h4>Natural Philosophy and Natural Theology</h4>
+	<ul>
+		<li><a href="Boedder/nath.htm">Natural Theology</a>, by Bernard Boedder, S.J.</li>
+		<li><a href="Clarke/eog.htm">The Existence of God. A Dialogue</a>, by Richard F. Clarke, S.J.</li>
+		<li><a href="Cornoldi/physic.htm">The Physical System of St. Thomas</a>, by Fr. Giovanni Maria Cornoldi, S.J.</li>
+		<li><a href="Maher/psych.htm">Psychology. Empirical and Rational</a>, by Michael Maher, S.J.</li>
+		<li><a href="Smith/smith.htm">Classification of Desires in St. Thomas and in Modern Sociology</a>, by Henry Ignatius Smith, O.P.</li>
+	</ul>
+  	<h4>General Philosophy and Metaphysics</h4>
+	<ul>
+		<li><a href="Louis/cp.htm">Elementary Course of Christian Philosophy</a>, by Br. Louis of Poissy</li>
+		<li><a href="Harper/tmots.htm">The Metaphysics of the School</a>, by Thomas Harper, S.J.</li>
+		<li><a href="Rickaby-Meta/gm.htm">General Metaphysics</a>, by John Rickaby, S.J.</li>
+	</ul>
+	<h4>Ethics, Politics, Moral Theology</h4>
+	<ul>
+		<li><a href="Coppens-Moral/mp.htm">A Brief Text-Book of Moral Philosophy</a>, by Rev. Charles Coppens, S.J.</li>
+		<li><a href="Elmendorf/emt.htm">Elements of Moral Theology</a>, by John J. Elmendorf</li>
+		<li><a href="Mausbach/cmt.htm">Catholic Moral Teaching and Its Antagonists</a>, by Joseph Mausbach, D.D.</li>
+		<li><a href="Rickaby-Foursquare/foursq.htm">Four-Square or The Cardinal Virtues</a>, by Joseph Rickaby, S.J.</li>
+		<li><a href="Rickaby-Moral/moral.htm">Moral Philosophy: Ethics, Deontology and Natural Law</a>, by Joseph Rickaby, S.J.</li>
+		<li><a href="Ryan/sac.htm">The State and the Church</a>, by John A. Ryan, D.D., LL.D.</li>
+		<li><a href="Slater/slater.htm">A Short History of Moral Theology</a>, by Rev. Thomas Slater, S.J.</li>
+	</ul>
+  </body>
+</html>
