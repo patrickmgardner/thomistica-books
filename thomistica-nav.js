@@ -93,15 +93,15 @@
     /* ---- reset interference with existing page layout ---- */
     "#thn-header *, #thn-footer * { box-sizing: border-box; margin: 0; padding: 0; }",
 
-    /* ---- body nudge: push content below fixed header ---- */
-    "body { margin-top: 56px !important; }",
+    /* ---- body nudge: push content below fixed header + add breathing room ---- */
+    "body { margin-top: 80px !important; }",
 
     /* ---- header ---- */
     "#thn-header {",
     "  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;",
     "  height: 56px;",
     "  background: #495A58;",
-    "  border-bottom: 2px solid #8b7040;",
+    "  border-bottom: none;",
     "  display: flex; align-items: center;",
     "  font-family: 'Georgia', 'Times New Roman', serif;",
     "  padding: 0 20px;",
@@ -111,18 +111,17 @@
     /* wordmark */
     "#thn-wordmark {",
     "  text-decoration: none;",
-    "  color: #e8dfc8;",
+    "  color: #ffffff;",
     "  font-size: 18px;",
     "  font-weight: normal;",
     "  letter-spacing: 0.04em;",
     "  white-space: nowrap;",
     "  flex-shrink: 0;",
     "}",
-    "#thn-wordmark span.thn-dot { color: #8b7040; }",
 
     /* separator pipe */
     "#thn-sep {",
-    "  color: #555;",
+    "  color: rgba(255,255,255,0.35);",
     "  margin: 0 14px;",
     "  font-size: 18px;",
     "  flex-shrink: 0;",
@@ -132,19 +131,19 @@
     "#thn-breadcrumb {",
     "  display: flex; align-items: center; gap: 6px;",
     "  font-size: 12.5px;",
-    "  color: #999;",
+    "  color: rgba(255,255,255,0.6);",
     "  overflow: hidden;",
     "  white-space: nowrap;",
     "  min-width: 0;",
     "}",
     "#thn-breadcrumb a {",
-    "  color: #b8a878;",
+    "  color: rgba(255,255,255,0.85);",
     "  text-decoration: none;",
     "}",
-    "#thn-breadcrumb a:hover { color: #e8dfc8; text-decoration: underline; }",
-    "#thn-breadcrumb .thn-crumb-sep { color: #555; flex-shrink: 0; }",
+    "#thn-breadcrumb a:hover { color: #ffffff; text-decoration: underline; }",
+    "#thn-breadcrumb .thn-crumb-sep { color: rgba(255,255,255,0.35); flex-shrink: 0; }",
     "#thn-breadcrumb .thn-crumb-current {",
-    "  color: #ccc;",
+    "  color: rgba(255,255,255,0.75);",
     "  overflow: hidden;",
     "  text-overflow: ellipsis;",
     "}",
@@ -154,12 +153,12 @@
     "  margin-left: auto;",
     "  flex-shrink: 0;",
     "  font-size: 12px;",
-    "  color: #777;",
+    "  color: rgba(255,255,255,0.6);",
     "  text-decoration: none;",
     "  padding-left: 20px;",
     "  white-space: nowrap;",
     "}",
-    "#thn-back:hover { color: #b8a878; }",
+    "#thn-back:hover { color: #ffffff; }",
 
     /* ---- footer ---- */
     "#thn-footer {",
@@ -192,6 +191,20 @@
     "body > p > b > a, body > center > b > a, body > p > a {",
     "  color: #7a6535;",
     "}",
+
+    /* ---- print styles ---- */
+    /* Header is position:fixed, so browsers repeat it on every printed page. */
+    /* We switch it to position:static so it flows naturally on page 1 only,  */
+    /* and hide the footer entirely (it will appear at end of last page via    */
+    /* the normal document flow if desired, but we suppress it too).          */
+    "@media print {",
+    "  #thn-header {",
+    "    position: static;",
+    "    break-after: avoid;",
+    "  }",
+    "  body { margin-top: 0 !important; }",
+    "  #thn-footer { display: none; }",
+    "}",
   ].join("\n");
 
   /* ---------- inject stylesheet ---------- */
@@ -214,8 +227,7 @@
       href: "https://thomistica.net",
       title: "Thomistica — home",
     });
-    wordmark.innerHTML =
-      "Thomistica";
+    wordmark.innerHTML = "Thomistica";
     header.appendChild(wordmark);
 
     // Separator
