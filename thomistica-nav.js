@@ -103,7 +103,7 @@
     "  background: #495A58;",
     "  border-bottom: none;",
     "  display: flex; align-items: center;",
-    "  font-family: 'Georgia', 'Times New Roman', serif;",
+    "  font-family: 'Marcellus', 'Times New Roman', serif;",
     "  padding: 0 20px;",
     "  gap: 0;",
     "}",
@@ -227,7 +227,7 @@
       href: "https://thomistica.net",
       title: "Thomistica — home",
     });
-    wordmark.innerHTML = "Thomistica";
+    wordmark.innerHTML = "THOMISTICA";
     header.appendChild(wordmark);
 
     // Separator
