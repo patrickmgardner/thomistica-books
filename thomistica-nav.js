@@ -1,18 +1,96 @@
 (function () {
   "use strict";
 
-  /* ------------------------------------------------------------------ *
-   *  thomistica-nav.js
-   *  Drop one copy of this file at the root of books.thomistica.net,
-   *  then add  <script src="/thomistica-nav.js"></script>
-   *  to every HTML page (see inject-nav.py for the batch tool).
+  /* ======================================================================
+   *  thomistica-nav.js  (v2)
    *
-   *  What it does:
-   *   1. Injects a top header bar (branding + breadcrumb + back-link)
-   *   2. Injects a bottom footer bar
-   *   3. Styles both bars + improves body typography
-   *   4. Reads the page <title> to build the breadcrumb automatically
-   * ------------------------------------------------------------------ */
+   *  Lives at the root of books.thomistica.net and is loaded by one
+   *  <script src="/thomistica-nav.js"></script> line per HTML page.
+   *
+   *  What it does on each page:
+   *   1. Works out the book title, the book's title page, and the page's
+   *      file number (from the <title> tag and the link at the top).
+   *   2. Builds a header breadcrumb:  Thomistica | Library > Book > Chapter N
+   *   3. Hides the old "Title / by Author" link and rule at the top
+   *      (the breadcrumb replaces them).
+   *   4. Replaces the ASCII  << ======= >>  navigation with styled links.
+   *   5. Adds a footer.
+   *
+   *  Edit the two blocks below (SETTINGS and WORKS) to tune behavior.
+   *  Everything under "ENGINE" normally needs no changes.
+   * ====================================================================== */
+
+
+  /* ======================================================================
+   *  1. SETTINGS  (apply to the whole collection)
+   * ====================================================================== */
+
+  var SETTINGS = {
+    // Label used for the numbered files when a work has no setting of its own.
+    defaultUnit: "Chapter",
+
+    // Label shown for file number 0 (usually contents / front matter).
+    zeroLabel: "Contents",
+
+    // Hide the old "Title / by Author" link and the <hr> after it,
+    // since the breadcrumb now does that job. Set to false to keep them.
+    hideTitleLink: true,
+
+    // Replace  << ======= >>  with Previous / Title page / Next links.
+    upgradeBottomNav: true,
+
+    libraryName: "Leonine Revival Books",
+    libraryUrl: "https://books.thomistica.net/",
+    siteUrl: "https://thomistica.net"
+  };
+
+
+  /* ======================================================================
+   *  2. WORKS  (per-work exceptions; works not listed here are automatic)
+   *
+   *  Key: the path of the work's title page, relative to the site root,
+   *       e.g. "DeWulf/homp.htm".  A directory key such as "DeWulf/" also
+   *       works and covers every page in that folder.
+   *
+   *  Options (all optional):
+   *    unit      "Lecture", "Article", ...   Label for the numbered files.
+   *              Use false for no numbered crumb at all.
+   *    numerals  "roman"                     Show II instead of 2.
+   *    offset    -1, 1, ...                  Added to the file number before
+   *                                          display (if file 2 is really
+   *                                          Chapter 1, use offset: -1).
+   *    zero      "Preface" / false           Label for file 000, or false
+   *                                          to show nothing for it.
+   *    title     "Short Title"               Override the book title shown
+   *                                          in the breadcrumb.
+   *    divisions [ {from: N, label: "..."} ] Named groups of files, by the
+   *                                          file number each one starts at.
+   *                                          Adds a middle crumb, e.g.
+   *                                          Book > Chapter I > Article 3.
+   * ====================================================================== */
+
+  var WORKS = {
+
+    "DeWulf/homp.htm": {
+      unit: "Article"
+      // Add divisions once you have the ranges, for example:
+      // , divisions: [
+      //   { from: 1,  label: "Introduction" },
+      //   { from: 3,  label: "Chapter I" },
+      //   { from: 12, label: "Chapter II" }
+      // ]
+    }
+
+    // Other examples:
+    // , "SomeLectures/lect.htm": { unit: "Lecture", numerals: "roman" }
+    // , "Another/another.htm":   { unit: "Chapter", offset: -1 }
+    // , "OneFolder/":            { unit: false }
+  };
+
+
+  /* ======================================================================
+   *  ENGINE
+   * ====================================================================== */
 
   /* ---------- helpers ---------- */
 
@@ -29,185 +107,304 @@
     return node;
   }
 
-  /* ---------- breadcrumb logic ----------
-   *
-   *  Title conventions found in the collection:
-   *   "St. Thomas Aquinas / by Placid Conway, OP"          → TOC page
-   *   "St. Thomas Aquinas / by Placid Conway, OP \n1"      → chapter page
-   *   "History of Medieval Philosophy"                      → title-only TOC
-   *   "Jacques Maritain Center: Revival 1"                  → Maritain-origin chapter
-   *
-   *  Strategy: strip noise, derive a short book title and (if present)
-   *  a chapter/section label.
-   */
-
-  function parseTitleParts(raw) {
-    var title = raw.replace(/\s+/g, " ").trim();
-
-    // Remove "Jacques Maritain Center: " prefix if present
-    title = title.replace(/^Jacques Maritain Center:\s*/i, "");
-
-    // Split on " / " — left side = book name, right = author noise
-    var slashParts = title.split(/\s*\/\s*/);
-    var bookTitle = slashParts[0].trim();
-
-    // Trailing digits or short codes like "000", "1", "2" indicate a chapter
-    var chapterMatch = bookTitle.match(/\s+(\d{1,4})\s*$/);
-    var chapterLabel = null;
-    if (chapterMatch) {
-      var num = parseInt(chapterMatch[1], 10);
-      chapterLabel = "Chapter\u00a0" + num; // non-breaking space
-      bookTitle = bookTitle.replace(/\s+\d{1,4}\s*$/, "").trim();
-    }
-
-    // Trim to a reasonable display length
-    if (bookTitle.length > 60) {
-      bookTitle = bookTitle.substring(0, 57) + "\u2026";
-    }
-
-    return { bookTitle: bookTitle, chapterLabel: chapterLabel };
+  function norm(s) {
+    return (s || "").replace(/\s+/g, " ").trim();
   }
 
-  /* ---------- find the book's TOC href ----------
+  var NAV_SYMBOLS = /^[<>=\s]+$/;
+
+  function toRoman(n) {
+    var map = [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"],
+               [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"],
+               [5, "V"], [4, "IV"], [1, "I"]];
+    var out = "";
+    map.forEach(function (p) {
+      while (n >= p[0]) { out += p[1]; n -= p[0]; }
+    });
+    return out;
+  }
+
+  // Site-relative path of an href, without leading slash: "DeWulf/homp.htm"
+  function pathOf(href) {
+    try {
+      return decodeURIComponent(new URL(href, location.href).pathname)
+        .replace(/^\//, "");
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function dirOf(path) {
+    return path.replace(/[^\/]*$/, "");
+  }
+
+  /* ---------- 1. read the page's <title> ----------
    *
-   *  The first <a> on chapter pages typically points back to the TOC.
-   *  We use it for the breadcrumb link.
+   *  Examples:
+   *    "Aristotle and the Christian Church / by Brother Azarias 1"
+   *    "History of Medieval Philosophy 003"        (newlines collapsed)
+   *    "Jacques Maritain Center: Revival 1"
+   *    "History of Medieval Philosophy"            (title page: no number)
+   *
+   *  The file number is a trailing 1-3 digit number anywhere at the END of
+   *  the whole title (it may come after the author, as in the Azarias case).
    */
-  function findTocHref() {
-    var links = document.querySelectorAll("body a");
-    for (var i = 0; i < Math.min(links.length, 5); i++) {
-      var href = links[i].getAttribute("href") || "";
-      // TOC pages typically have short filenames without digits in the stem,
-      // or end in index patterns. Heuristic: first link whose text looks like
-      // a book title (longer than 15 chars) or whose href lacks a number suffix.
-      if (href && href.match(/\.html?$/i) && !href.match(/\d{2,}\.html?$/i)) {
-        return href;
-      }
+  function parsePageTitle() {
+    var t = norm(document.title)
+      .replace(/^Jacques Maritain Center:\s*/i, "");
+
+    var num = null;
+    var m = t.match(/^(.*?)\s+(\d{1,3})$/);
+    if (m) {
+      num = parseInt(m[2], 10);
+      t = m[1];
+    }
+
+    var parts = t.split(/\s+\/\s+/);
+    return {
+      book: parts[0],
+      author: (parts[1] || "").replace(/^by\s+/i, ""),
+      num: num
+    };
+  }
+
+  /* ---------- 2. find the link at the top of the page ----------
+   *
+   *  Chapter pages start with  <a href="title-page.htm">Title / by Author</a><hr>
+   *  The title page itself starts with a link around the title that points
+   *  to the FIRST page, so it must not be mistaken for a link back.
+   *  A link counts as "back to the title page" when the page has a file
+   *  number, or when the link text has the "Title / by Author" shape.
+   */
+  function findTitleLink(info) {
+    var anchors = document.body.querySelectorAll("a[href]");
+    for (var i = 0; i < Math.min(anchors.length, 3); i++) {
+      var text = norm(anchors[i].textContent);
+      if (!text || NAV_SYMBOLS.test(text)) continue;
+      if (info.num !== null || text.indexOf(" / ") !== -1) return anchors[i];
     }
     return null;
   }
 
+  /* ---------- 3. put it all together ---------- */
+
+  function analyse() {
+    var info = parsePageTitle();
+    var link = findTitleLink(info);
+    var currentPath = pathOf(location.href);
+
+    var onTitlePage = (info.num === null && !link);
+
+    var book = info.book;
+    var author = info.author;
+    if (link) {
+      var lp = norm(link.textContent).split(/\s+\/\s+/);
+      if (lp[0]) book = lp[0];
+      if (lp[1]) author = lp[1].replace(/^by\s+/i, "");
+    }
+
+    var tocPath = link ? pathOf(link.getAttribute("href"))
+                       : (onTitlePage ? currentPath : "");
+    var tocHref = link ? link.getAttribute("href")
+                       : (onTitlePage ? null : null);
+
+    var cfg = WORKS[tocPath] ||
+              WORKS[dirOf(tocPath || currentPath)] ||
+              {};
+
+    // Crumbs after the book title
+    var crumbs = [];
+    if (info.num !== null) {
+      var num = info.num;
+      var div = null;
+      (cfg.divisions || []).forEach(function (d) {
+        if (d.from <= num && (!div || d.from >= div.from)) div = d;
+      });
+      if (div) crumbs.push(div.label);
+
+      if (num === 0) {
+        if (!div && cfg.zero !== false) {
+          crumbs.push(cfg.zero || SETTINGS.zeroLabel);
+        }
+      } else {
+        var unit = (cfg.unit === undefined) ? SETTINGS.defaultUnit : cfg.unit;
+        var n = num + (cfg.offset || 0);
+        if (unit && n >= 1) {
+          crumbs.push(unit + " " +
+                      (cfg.numerals === "roman" ? toRoman(n) : n));
+        }
+      }
+    }
+
+    return {
+      bookTitle: cfg.title || book,
+      author: author,
+      crumbs: crumbs,
+      titleLink: link,
+      tocHref: tocHref,
+      tocPath: tocPath,
+      onTitlePage: onTitlePage
+    };
+  }
+
+  /* ---------- 4. hide the old top link + rule ---------- */
+
+  function hideTitleLink(ctx) {
+    var a = ctx.titleLink;
+    if (!a || ctx.onTitlePage) return;
+    if (a.parentNode !== document.body) return; // unusual layout: leave alone
+    a.style.display = "none";
+    var next = a.nextElementSibling;
+    if (next && next.tagName === "HR") next.style.display = "none";
+  }
+
+  /* ---------- 5. replace  << ======= >>  with a pager ----------
+   *
+   *  For each "<<" / ">>" link, climb to the largest ancestor whose text is
+   *  only  < > =  and whitespace, and replace that whole element.
+   */
+  function upgradeNav(ctx) {
+    var anchors = Array.prototype.slice.call(
+      document.body.querySelectorAll("a[href]"));
+    var handled = [];
+
+    anchors.forEach(function (a) {
+      var t = norm(a.textContent);
+      if (t !== "<<" && t !== ">>") return;
+
+      var box = a;
+      while (box.parentNode && box.parentNode !== document.body) {
+        var parent = box.parentNode;
+        var leftover = norm(parent.textContent).replace(/[<>=\s]/g, "");
+        if (leftover !== "") break;
+        box = parent;
+      }
+      if (handled.indexOf(box) !== -1) return;
+      handled.push(box);
+
+      var prev = null, next = null;
+      var inner = box.querySelectorAll ? box.querySelectorAll("a[href]") : [];
+      var list = box.tagName === "A" ? [box] : Array.prototype.slice.call(inner);
+      list.forEach(function (x) {
+        var xt = norm(x.textContent);
+        if (xt === "<<" && !prev) prev = x.getAttribute("href");
+        if (xt === ">>" && !next) next = x.getAttribute("href");
+      });
+
+      // On the title page "<<" only wraps around to the last page: drop it.
+      if (ctx.onTitlePage) prev = null;
+
+      var pager = el("nav", { className: "thn-pager" });
+      pager.appendChild(prev
+        ? el("a", { className: "thn-prev", href: prev }, ["‹ Previous"])
+        : el("span", { className: "thn-spacer" }));
+      // Skip the middle link when "Previous" already goes to the title page.
+      var prevIsToc = prev && pathOf(prev) === ctx.tocPath;
+      if (ctx.tocHref && !ctx.onTitlePage && !prevIsToc) {
+        pager.appendChild(
+          el("a", { className: "thn-toc", href: ctx.tocHref }, ["Title page"]));
+      }
+      pager.appendChild(next
+        ? el("a", { className: "thn-next", href: next }, ["Next ›"])
+        : el("span", { className: "thn-spacer" }));
+
+      box.parentNode.replaceChild(pager, box);
+    });
+  }
+
   /* ---------- CSS ---------- */
 
-  var CSS = [
-    /* ---- reset interference with existing page layout ---- */
-    "#thn-header *, #thn-footer * { box-sizing: border-box; margin: 0; padding: 0; }",
+  var TEAL = "#495A58";
+  var SERIF = "Georgia, 'Times New Roman', serif";
 
-    /* ---- body nudge: push content below fixed header + add breathing room ---- */
+  var CSS = [
+    "#thn-header *, #thn-footer *, .thn-pager * { box-sizing: border-box; }",
+
+    /* push page content below the fixed header, with breathing room */
     "body { margin-top: 80px !important; }",
 
     /* ---- header ---- */
     "#thn-header {",
     "  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;",
     "  height: 56px;",
-    "  background: #495A58;",
-    "  border-bottom: none;",
+    "  background: " + TEAL + ";",
+    "  font-family: " + SERIF + ";",
+    "}",
+    /* inner row lines up with the text column below */
+    "#thn-inner {",
+    "  height: 100%; max-width: 828px; margin: 0 auto; padding: 0 24px;",
     "  display: flex; align-items: center;",
-    "  font-family: 'Marcellus', 'Times New Roman', serif;",
-    "  padding: 0 20px;",
-    "  gap: 0;",
     "}",
-
-    /* wordmark */
     "#thn-wordmark {",
-    "  text-decoration: none;",
-    "  color: #ffffff;",
-    "  font-size: 18px;",
-    "  font-weight: normal;",
-    "  letter-spacing: 0.04em;",
-    "  white-space: nowrap;",
+    "  color: #fff; text-decoration: none;",
+    "  font-size: 21px; letter-spacing: 0.03em; white-space: nowrap;",
     "  flex-shrink: 0;",
     "}",
-
-    /* separator pipe */
     "#thn-sep {",
-    "  color: rgba(255,255,255,0.35);",
-    "  margin: 0 14px;",
-    "  font-size: 18px;",
-    "  flex-shrink: 0;",
+    "  width: 1px; height: 22px; margin: 0 16px;",
+    "  background: rgba(255,255,255,0.35); flex-shrink: 0;",
     "}",
-
-    /* breadcrumb area */
     "#thn-breadcrumb {",
-    "  display: flex; align-items: center; gap: 6px;",
-    "  font-size: 12.5px;",
-    "  color: rgba(255,255,255,0.6);",
-    "  overflow: hidden;",
-    "  white-space: nowrap;",
-    "  min-width: 0;",
+    "  display: flex; align-items: center; gap: 9px;",
+    "  font-size: 16px; color: rgba(255,255,255,0.75);",
+    "  min-width: 0; overflow: hidden; white-space: nowrap;",
     "}",
-    "#thn-breadcrumb a {",
-    "  color: rgba(255,255,255,0.85);",
-    "  text-decoration: none;",
+    "#thn-breadcrumb a { color: #fff; text-decoration: none; }",
+    "#thn-breadcrumb a:hover { text-decoration: underline; }",
+    "#thn-breadcrumb .thn-chev { color: rgba(255,255,255,0.5); flex-shrink: 0; }",
+    "#thn-breadcrumb .thn-fixed { flex-shrink: 0; }",
+    "#thn-breadcrumb .thn-book {",
+    "  min-width: 0; overflow: hidden; text-overflow: ellipsis;",
     "}",
-    "#thn-breadcrumb a:hover { color: #ffffff; text-decoration: underline; }",
-    "#thn-breadcrumb .thn-crumb-sep { color: rgba(255,255,255,0.35); flex-shrink: 0; }",
-    "#thn-breadcrumb .thn-crumb-current {",
-    "  color: rgba(255,255,255,0.75);",
-    "  overflow: hidden;",
-    "  text-overflow: ellipsis;",
+    "#thn-breadcrumb .thn-current { color: #fff; }",
+    "@media (max-width: 560px) {",
+    "  #thn-wordmark { font-size: 18px; }",
+    "  #thn-breadcrumb { font-size: 14px; }",
+    "  .thn-hide-sm { display: none !important; }",
     "}",
 
-    /* right-side back link */
-    "#thn-back {",
-    "  margin-left: auto;",
-    "  flex-shrink: 0;",
-    "  font-size: 12px;",
-    "  color: rgba(255,255,255,0.6);",
-    "  text-decoration: none;",
-    "  padding-left: 20px;",
+    /* ---- pager (replaces << ======= >>) ---- */
+    ".thn-pager {",
+    "  display: flex; justify-content: space-between; align-items: center;",
+    "  gap: 12px; margin: 2em 0 1em; padding-top: 1em;",
+    "  border-top: 1px solid #d9d4c4;",
+    "  font-family: " + SERIF + "; font-size: 16px; line-height: 1.2;",
+    "}",
+    ".thn-pager a {",
+    "  color: " + TEAL + "; text-decoration: none;",
+    "  padding: 7px 14px; border: 1px solid " + TEAL + "; border-radius: 3px;",
     "  white-space: nowrap;",
     "}",
-    "#thn-back:hover { color: #ffffff; }",
+    ".thn-pager a:hover { background: " + TEAL + "; color: #fff; }",
+    ".thn-pager .thn-spacer { min-width: 1px; }",
 
     /* ---- footer ---- */
     "#thn-footer {",
-    "  margin-top: 48px;",
-    "  padding: 20px 24px;",
-    "  border-top: 1px solid #d0c8b0;",
-    "  font-family: 'Georgia', 'Times New Roman', serif;",
-    "  font-size: 12.5px;",
-    "  color: #888;",
-    "  text-align: center;",
-    "  background: #faf8f3;",
+    "  margin-top: 48px; padding: 20px 24px;",
+    "  border-top: 1px solid #d9d4c4;",
+    "  font-family: " + SERIF + "; font-size: 13.5px; color: #777;",
+    "  text-align: center; background: #faf8f3;",
     "}",
-    "#thn-footer a { color: #7a6535; text-decoration: none; }",
+    "#thn-footer a { color: " + TEAL + "; text-decoration: none; }",
     "#thn-footer a:hover { text-decoration: underline; }",
-    "#thn-footer .thn-footer-sep { margin: 0 10px; color: #ccc; }",
+    "#thn-footer .thn-footer-sep { margin: 0 10px; color: #bbb; }",
 
-    /* ---- body typography improvements (light touch) ---- */
+    /* ---- body typography (light touch) ---- */
     "body {",
-    "  font-family: 'Georgia', 'Times New Roman', serif;",
-    "  line-height: 1.7;",
-    "  color: #222;",
-    "  background: #faf8f3;",
+    "  font-family: " + SERIF + ";",
+    "  line-height: 1.7; color: #222; background: #faf8f3;",
     "  max-width: 780px;",
-    "  margin-left: auto !important;",
-    "  margin-right: auto !important;",
+    "  margin-left: auto !important; margin-right: auto !important;",
     "  padding: 0 24px 48px;",
     "}",
 
-    /* Keep existing nav links (`<< >>` etc.) readable */
-    "body > p > b > a, body > center > b > a, body > p > a {",
-    "  color: #7a6535;",
-    "}",
-
-    /* ---- print styles ---- */
-    /* Header is position:fixed, so browsers repeat it on every printed page. */
-    /* We switch it to position:static so it flows naturally on page 1 only,  */
-    /* and hide the footer entirely (it will appear at end of last page via    */
-    /* the normal document flow if desired, but we suppress it too).          */
+    /* ---- print: header once on page 1; no pager or footer ---- */
     "@media print {",
-    "  #thn-header {",
-    "    position: static;",
-    "    break-after: avoid;",
-    "  }",
+    "  #thn-header { position: static; break-after: avoid; }",
     "  body { margin-top: 0 !important; }",
-    "  #thn-footer { display: none; }",
-    "}",
+    "  .thn-pager, #thn-footer { display: none; }",
+    "}"
   ].join("\n");
-
-  /* ---------- inject stylesheet ---------- */
 
   function injectStyles() {
     var style = document.createElement("style");
@@ -216,86 +413,67 @@
     document.head.appendChild(style);
   }
 
-  /* ---------- build header ---------- */
+  /* ---------- header ---------- */
 
-  function buildHeader(parts) {
+  function chev(extraClass) {
+    return el("span", { className: "thn-chev " + (extraClass || "") },
+              ["›"]);
+  }
+
+  function buildHeader(ctx) {
     var header = el("div", { id: "thn-header" });
+    var inner = el("div", { id: "thn-inner" });
 
-    // Wordmark — links to main site
-    var wordmark = el("a", {
-      id: "thn-wordmark",
-      href: "https://thomistica.net",
-      title: "Thomistica — home",
-    });
-    wordmark.innerHTML = "THOMISTICA";
-    header.appendChild(wordmark);
+    inner.appendChild(el("a", {
+      id: "thn-wordmark", href: SETTINGS.siteUrl, title: "Thomistica — home"
+    }, ["Thomistica"]));
 
-    // Separator
-    header.appendChild(el("span", { id: "thn-sep" }, ["|"]));
+    inner.appendChild(el("span", { id: "thn-sep" }));
 
-    // Breadcrumb
     var bc = el("div", { id: "thn-breadcrumb" });
 
-    // "Leonine Revival Books" — links to book index
-    var libLink = el("a", { href: "https://books.thomistica.net/" }, [
-      "Leonine Revival Books",
-    ]);
-    bc.appendChild(libLink);
+    bc.appendChild(el("a", {
+      className: "thn-fixed thn-hide-sm", href: SETTINGS.libraryUrl
+    }, [SETTINGS.libraryName]));
+    bc.appendChild(chev("thn-hide-sm"));
 
-    // If we have a book title, add it
-    if (parts.bookTitle) {
-      bc.appendChild(
-        el("span", { className: "thn-crumb-sep" }, ["\u203a"])
-      );
-
-      if (parts.chapterLabel) {
-        // We're on a chapter page; link the book title to its TOC
-        var tocHref = findTocHref();
-        if (tocHref) {
-          bc.appendChild(
-            el("a", { href: tocHref }, [parts.bookTitle])
-          );
-        } else {
-          bc.appendChild(
-            el("span", { className: "thn-crumb-current" }, [parts.bookTitle])
-          );
-        }
-        bc.appendChild(
-          el("span", { className: "thn-crumb-sep" }, ["\u203a"])
-        );
-        bc.appendChild(
-          el("span", { className: "thn-crumb-current" }, [parts.chapterLabel])
-        );
-      } else {
-        // We're on a TOC page; book title is the terminal crumb
-        bc.appendChild(
-          el("span", { className: "thn-crumb-current" }, [parts.bookTitle])
-        );
-      }
+    // Book title: a link on inner pages, plain text on the title page
+    var hasCrumbs = ctx.crumbs.length > 0;
+    var bookAttrs = { className: "thn-book" };
+    if (ctx.author) bookAttrs.title = ctx.bookTitle + " — " + ctx.author;
+    var bookNode;
+    if (ctx.tocHref && !ctx.onTitlePage) {
+      bookAttrs.href = ctx.tocHref;
+      bookNode = el("a", bookAttrs, [ctx.bookTitle]);
+    } else {
+      bookAttrs.className += " thn-current";
+      bookNode = el("span", bookAttrs, [ctx.bookTitle]);
     }
+    bc.appendChild(bookNode);
 
-    header.appendChild(bc);
+    ctx.crumbs.forEach(function (label, i) {
+      bc.appendChild(chev());
+      var last = (i === ctx.crumbs.length - 1);
+      bc.appendChild(el("span", {
+        className: "thn-fixed" + (last ? " thn-current" : "")
+      }, [label]));
+    });
 
-    // Right-side "← Thomistica" link
-    var backLink = el("a", {
-      id: "thn-back",
-      href: "https://thomistica.net",
-    }, ["\u2190\u00a0thomistica.net"]);
-    header.appendChild(backLink);
-
+    inner.appendChild(bc);
+    header.appendChild(inner);
     return header;
   }
 
-  /* ---------- build footer ---------- */
+  /* ---------- footer ---------- */
 
   function buildFooter() {
     var footer = el("div", { id: "thn-footer" });
     var line = el("p", {});
     line.innerHTML =
-      "Part of\u00a0" +
-      "<a href='https://thomistica.net'>Thomistica.net</a>" +
+      "Part of " +
+      "<a href='" + SETTINGS.siteUrl + "'>Thomistica.net</a>" +
       "<span class='thn-footer-sep'>&middot;</span>" +
-      "<a href='https://books.thomistica.net'>Leonine Revival Books</a>" +
+      "<a href='" + SETTINGS.libraryUrl + "'>" + SETTINGS.libraryName + "</a>" +
       "<span class='thn-footer-sep'>&middot;</span>" +
       "Under the direction of the " +
       "<a href='https://www.sacradoctrinaproject.org/'>Sacra Doctrina Project</a>";
@@ -306,24 +484,20 @@
   /* ---------- main ---------- */
 
   function init() {
-    var rawTitle = document.title || "";
-    var parts = parseTitleParts(rawTitle);
+    // Analyse BEFORE touching the DOM, so our own header can't be mistaken
+    // for page content.
+    var ctx = analyse();
+
+    if (SETTINGS.hideTitleLink) hideTitleLink(ctx);
+    if (SETTINGS.upgradeBottomNav) upgradeNav(ctx);
 
     injectStyles();
-
-    // Insert header at very top of <body>
-    var header = buildHeader(parts);
-    document.body.insertBefore(header, document.body.firstChild);
-
-    // Append footer at bottom of <body>
+    document.body.insertBefore(buildHeader(ctx), document.body.firstChild);
     document.body.appendChild(buildFooter());
   }
 
-  // Run after DOM is ready
-  if (
-    document.readyState === "loading" ||
-    document.readyState === "uninitialized"
-  ) {
+  if (document.readyState === "loading" ||
+      document.readyState === "uninitialized") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
