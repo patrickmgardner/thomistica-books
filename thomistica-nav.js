@@ -30,7 +30,7 @@
     defaultUnit: "Chapter",
 
     // Label shown for file number 0 (usually contents / front matter).
-    zeroLabel: "Contents",
+    zeroLabel: "Introduction",
 
     // Hide the old "Title / by Author" link and the <hr> after it,
     // since the breadcrumb now does that job. Set to false to keep them.
@@ -79,6 +79,18 @@
       //   { from: 3,  label: "Chapter I" },
       //   { from: 12, label: "Chapter II" }
       // ]
+    },
+
+    "Rickaby-SCG/": {
+	    unit: "Chapter",
+	    zero: "Preface",
+	    title: "On God and His Creatures",
+	    divisions: [
+		    {from: 1.1, label: "Book 1"},
+		    {from 2.1, label: "Book 2",}
+		    {from: 3.1, label: "Book 3",}
+		    {from: 4.1, label: "Book 4" }
+	    ]
     }
 
     // Other examples:
