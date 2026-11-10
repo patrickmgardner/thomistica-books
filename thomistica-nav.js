@@ -30,7 +30,7 @@
     defaultUnit: "Chapter",
 
     // Label shown for file number 0 (usually contents / front matter).
-    zeroLabel: "Introduction",
+    zeroLabel: "Contents",
 
     // Hide the old "Title / by Author" link and the <hr> after it,
     // since the breadcrumb now does that job. Set to false to keep them.
@@ -55,7 +55,11 @@
    *  Options (all optional):
    *    unit      "Lecture", "Article", ...   Label for the numbered files.
    *              Use false for no numbered crumb at all.
-   *    numerals  "roman"                     Show II instead of 2.
+   *    units     ["Book", "Chapter"]         For titles with multi-level
+   *                                          numbers like "GC 1.11":
+   *                                          Book 1 > Chapter 11.
+   *    numerals  "roman"                     Show II instead of 2. Or a list
+   *                                          per level: ["roman", "arabic"].
    *    offset    -1, 1, ...                  Added to the file number before
    *                                          display (if file 2 is really
    *                                          Chapter 1, use offset: -1).
@@ -71,6 +75,12 @@
 
   var WORKS = {
 
+    // Key can be just the file name ("gc.htm") or the full path
+    // ("GC/gc.htm") if two works share a file name.
+    "gc.htm": {
+      units: ["Book", "Chapter"]
+    },
+
     "DeWulf/homp.htm": {
       unit: "Article"
       // Add divisions once you have the ranges, for example:
@@ -79,18 +89,6 @@
       //   { from: 3,  label: "Chapter I" },
       //   { from: 12, label: "Chapter II" }
       // ]
-    }
-
-    , "Rickaby-SCG/": {
-	    unit: "Chapter"
-	    , zero: "Preface"
-	    , title: "On God and His Creatures"
-	    , divisions: [
-		    { from: 1.1, label: "Book 1" },
-		    { from: 2.1, label: "Book 2" },
-		    { from: 3.1, label: "Book 3" },
-		    { from: 4.1, label: "Book 4" }
-	    ]
     }
 
     // Other examples:
@@ -165,10 +163,11 @@
     var t = norm(document.title)
       .replace(/^Jacques Maritain Center:\s*/i, "");
 
-    var num = null;
-    var m = t.match(/^(.*?)\s+(\d{1,3})$/);
+    // Trailing number, possibly multi-level: "1", "003", "1.11", "3.2.5"
+    var nums = null;
+    var m = t.match(/^(.*?)\s+(\d{1,3}(?:\.\d{1,3})*)$/);
     if (m) {
-      num = parseInt(m[2], 10);
+      nums = m[2].split(".").map(function (x) { return parseInt(x, 10); });
       t = m[1];
     }
 
@@ -176,7 +175,7 @@
     return {
       book: parts[0],
       author: (parts[1] || "").replace(/^by\s+/i, ""),
-      num: num
+      nums: nums                       // null, or e.g. [3] or [1, 11]
     };
   }
 
@@ -193,7 +192,7 @@
     for (var i = 0; i < Math.min(anchors.length, 3); i++) {
       var text = norm(anchors[i].textContent);
       if (!text || NAV_SYMBOLS.test(text)) continue;
-      if (info.num !== null || text.indexOf(" / ") !== -1) return anchors[i];
+      if (info.nums !== null || text.indexOf(" / ") !== -1) return anchors[i];
     }
     return null;
   }
@@ -205,7 +204,7 @@
     var link = findTitleLink(info);
     var currentPath = pathOf(location.href);
 
-    var onTitlePage = (info.num === null && !link);
+    var onTitlePage = (info.nums === null && !link);
 
     var book = info.book;
     var author = info.author;
@@ -220,30 +219,49 @@
     var tocHref = link ? link.getAttribute("href")
                        : (onTitlePage ? null : null);
 
+    // Settings lookup: exact title-page path, then its folder, then bare
+    // file name (so "gc.htm" works without knowing the folder).
     var cfg = WORKS[tocPath] ||
               WORKS[dirOf(tocPath || currentPath)] ||
+              WORKS[(tocPath || currentPath).split("/").pop()] ||
               {};
+
+    function fmt(n, level) {
+      var style = Array.isArray(cfg.numerals) ? cfg.numerals[level] : cfg.numerals;
+      return style === "roman" ? toRoman(n) : String(n);
+    }
 
     // Crumbs after the book title
     var crumbs = [];
-    if (info.num !== null) {
-      var num = info.num;
-      var div = null;
-      (cfg.divisions || []).forEach(function (d) {
-        if (d.from <= num && (!div || d.from >= div.from)) div = d;
-      });
-      if (div) crumbs.push(div.label);
-
-      if (num === 0) {
-        if (!div && cfg.zero !== false) {
-          crumbs.push(cfg.zero || SETTINGS.zeroLabel);
-        }
+    var nums = info.nums;
+    if (nums) {
+      if (cfg.units) {
+        // Multi-level: units ["Book", "Chapter"] + title "GC 1.11"
+        //   -> Book 1 > Chapter 11   (and "GC 1" -> Book 1)
+        nums.forEach(function (n, i) {
+          crumbs.push((cfg.units[i] || "Section") + " " + fmt(n, i));
+        });
+      } else if (nums.length > 1) {
+        // Multi-level number but no settings for this work
+        crumbs.push("Section " + nums.join("."));
       } else {
-        var unit = (cfg.unit === undefined) ? SETTINGS.defaultUnit : cfg.unit;
-        var n = num + (cfg.offset || 0);
-        if (unit && n >= 1) {
-          crumbs.push(unit + " " +
-                      (cfg.numerals === "roman" ? toRoman(n) : n));
+        var num = nums[0];
+        var div = null;
+        (cfg.divisions || []).forEach(function (d) {
+          if (d.from <= num && (!div || d.from >= div.from)) div = d;
+        });
+        if (div) crumbs.push(div.label);
+
+        if (num === 0) {
+          if (!div && cfg.zero !== false) {
+            crumbs.push(cfg.zero || SETTINGS.zeroLabel);
+          }
+        } else {
+          var unit = (cfg.unit === undefined) ? SETTINGS.defaultUnit : cfg.unit;
+          var n1 = num + (cfg.offset || 0);
+          if (unit && n1 >= 1) {
+            crumbs.push(unit + " " + fmt(n1, 0));
+          }
         }
       }
     }
