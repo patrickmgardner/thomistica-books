@@ -58,6 +58,12 @@
    *    units     ["Book", "Chapter"]         For titles with multi-level
    *                                          numbers like "GC 1.11":
    *                                          Book 1 > Chapter 11.
+   *    levelPages  "gc{n}.htm"               Where the intermediate pages are,
+   *                or { "1": "gc1.htm", ... } so that e.g. "Book 1" links to
+   *                                          its own contents page. {n} is
+   *                                          the number ("1", or "3.2" for a
+   *                                          deeper level). Relative to the
+   *                                          work's title page.
    *    numerals  "roman"                     Show II instead of 2. Or a list
    *                                          per level: ["roman", "arabic"].
    *    offset    -1, 1, ...                  Added to the file number before
@@ -75,13 +81,17 @@
 
   var WORKS = {
 
-    // Key can be just the file name ("gc.htm") or the full path
-    // ("GC/gc.htm") if two works share a file name.
-    "Rickaby-SCG/": {
-      units: ["Book", "Chapter"]
+    // Use the FULL path of the title page. Pages that have no back-link at
+    // the top (such as the book-level contents pages) find their settings
+    // through the folder, which only works with a full path.
+    "Rickaby-SCG/gc.htm": {
+      units: ["Book", "Chapter"],
+      // "Book 1" links to gc_bk1.htm, "Book 2" to gc_bk2.htm, and so on
+      // (same folder as the title page).
+      levelPages: "gc_bk{n}.htm"
     },
 
-    "DeWulf/": {
+    "DeWulf/homp.htm": {
       unit: "Article"
       // Add divisions once you have the ranges, for example:
       // , divisions: [
@@ -187,21 +197,72 @@
    *  A link counts as "back to the title page" when the page has a file
    *  number, or when the link text has the "Title / by Author" shape.
    */
-  function findTitleLink(info) {
+  function findTitleLink() {
     var anchors = document.body.querySelectorAll("a[href]");
     for (var i = 0; i < Math.min(anchors.length, 3); i++) {
-      var text = norm(anchors[i].textContent);
+      var a = anchors[i];
+      var text = norm(a.textContent);
       if (!text || NAV_SYMBOLS.test(text)) continue;
-      if (info.nums !== null || text.indexOf(" / ") !== -1) return anchors[i];
+
+      // Shape 1: the link sits alone at the top, directly followed by <hr>
+      //   <a href="gc.htm">Of God and His Creatures</a><hr>
+      // (it may be wrapped in <p>, <center>, ... as long as it is alone)
+      var top = a;
+      while (top.parentNode && top.parentNode !== document.body) {
+        top = top.parentNode;
+      }
+      var after = top.nextElementSibling;
+      if (after && after.tagName === "HR" && norm(top.textContent) === text) {
+        return a;
+      }
+
+      // Shape 2: "Title / by Author" link text
+      if (text.indexOf(" / ") !== -1) return a;
     }
+    // Anything else (e.g. a chapter link in a table of contents) is NOT a
+    // link back to the title page.
     return null;
+  }
+
+  /* ---------- find a work's settings ----------
+   *
+   *  Tried in order: the title page's path, its folder, its bare file name,
+   *  then the current page's own path / folder / file name, and finally any
+   *  full-path entry in WORKS that lives in the same folder as this page.
+   *  That last step is what lets pages WITHOUT a back-link (such as a
+   *  book-level contents page) find their work's settings.
+   *  Returns { cfg: {...}, key: "matching key or null" }.
+   */
+  function findWork(tocPath, currentPath) {
+    var tries = [];
+    if (tocPath) {
+      tries.push(tocPath, dirOf(tocPath), tocPath.split("/").pop());
+    }
+    tries.push(currentPath, dirOf(currentPath), currentPath.split("/").pop());
+
+    for (var i = 0; i < tries.length; i++) {
+      if (tries[i] && WORKS.hasOwnProperty(tries[i])) {
+        return { cfg: WORKS[tries[i]], key: tries[i] };
+      }
+    }
+
+    var here = dirOf(currentPath);
+    var keys = Object.keys(WORKS);
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      if (key.slice(-1) !== "/" && key.indexOf("/") !== -1 &&
+          dirOf(key) === here) {
+        return { cfg: WORKS[key], key: key };
+      }
+    }
+    return { cfg: {}, key: null };
   }
 
   /* ---------- 3. put it all together ---------- */
 
   function analyse() {
     var info = parsePageTitle();
-    var link = findTitleLink(info);
+    var link = findTitleLink();
     var currentPath = pathOf(location.href);
 
     var onTitlePage = (info.nums === null && !link);
@@ -216,51 +277,75 @@
 
     var tocPath = link ? pathOf(link.getAttribute("href"))
                        : (onTitlePage ? currentPath : "");
-    var tocHref = link ? link.getAttribute("href")
-                       : (onTitlePage ? null : null);
+    var tocHref = link ? link.getAttribute("href") : null;
 
-    // Settings lookup: exact title-page path, then its folder, then bare
-    // file name (so "gc.htm" works without knowing the folder).
-    var cfg = WORKS[tocPath] ||
-              WORKS[dirOf(tocPath || currentPath)] ||
-              WORKS[(tocPath || currentPath).split("/").pop()] ||
-              {};
+    var found = findWork(tocPath, currentPath);
+    var cfg = found.cfg;
+
+    // A numbered page with no back-link (e.g. a book-level contents page):
+    // if its work was found by a full-path key, that key IS the title page.
+    if (!link && !onTitlePage && found.key &&
+        found.key.slice(-1) !== "/" && found.key.indexOf("/") !== -1) {
+      tocPath = found.key;
+      tocHref = "/" + found.key;
+    }
 
     function fmt(n, level) {
       var style = Array.isArray(cfg.numerals) ? cfg.numerals[level] : cfg.numerals;
       return style === "roman" ? toRoman(n) : String(n);
     }
 
-    // Crumbs after the book title
+    // Address of an intermediate level's page (e.g. Book 1), from
+    // cfg.levelPages: either { "1": "gc1.htm", ... } or a template such as
+    // "gc{n}.htm". Relative addresses are resolved against the title page.
+    function levelHref(prefix) {
+      var lp = cfg.levelPages;
+      if (!lp) return null;
+      var rel = (typeof lp === "string") ? lp.replace(/\{n\}/g, prefix)
+                                         : lp[prefix];
+      if (!rel) return null;
+      try {
+        return new URL(rel, new URL(tocHref || location.href, location.href)).href;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Crumbs after the book title: [{ text: "Book 1", href: "..." | null }]
     var crumbs = [];
     var nums = info.nums;
     if (nums) {
       if (cfg.units) {
         // Multi-level: units ["Book", "Chapter"] + title "GC 1.11"
         //   -> Book 1 > Chapter 11   (and "GC 1" -> Book 1)
+        // Every level except the last can link to its own page.
         nums.forEach(function (n, i) {
-          crumbs.push((cfg.units[i] || "Section") + " " + fmt(n, i));
+          var last = (i === nums.length - 1);
+          crumbs.push({
+            text: (cfg.units[i] || "Section") + " " + fmt(n, i),
+            href: last ? null : levelHref(nums.slice(0, i + 1).join("."))
+          });
         });
       } else if (nums.length > 1) {
         // Multi-level number but no settings for this work
-        crumbs.push("Section " + nums.join("."));
+        crumbs.push({ text: "Section " + nums.join("."), href: null });
       } else {
         var num = nums[0];
         var div = null;
         (cfg.divisions || []).forEach(function (d) {
           if (d.from <= num && (!div || d.from >= div.from)) div = d;
         });
-        if (div) crumbs.push(div.label);
+        if (div) crumbs.push({ text: div.label, href: null });
 
         if (num === 0) {
           if (!div && cfg.zero !== false) {
-            crumbs.push(cfg.zero || SETTINGS.zeroLabel);
+            crumbs.push({ text: cfg.zero || SETTINGS.zeroLabel, href: null });
           }
         } else {
           var unit = (cfg.unit === undefined) ? SETTINGS.defaultUnit : cfg.unit;
           var n1 = num + (cfg.offset || 0);
           if (unit && n1 >= 1) {
-            crumbs.push(unit + " " + fmt(n1, 0));
+            crumbs.push({ text: unit + " " + fmt(n1, 0), href: null });
           }
         }
       }
@@ -481,12 +566,18 @@
     }
     bc.appendChild(bookNode);
 
-    ctx.crumbs.forEach(function (label, i) {
+    ctx.crumbs.forEach(function (crumb, i) {
       bc.appendChild(chev());
       var last = (i === ctx.crumbs.length - 1);
-      bc.appendChild(el("span", {
-        className: "thn-fixed" + (last ? " thn-current" : "")
-      }, [label]));
+      if (crumb.href && !last) {
+        bc.appendChild(el("a", {
+          className: "thn-fixed", href: crumb.href
+        }, [crumb.text]));
+      } else {
+        bc.appendChild(el("span", {
+          className: "thn-fixed" + (last ? " thn-current" : "")
+        }, [crumb.text]));
+      }
     });
 
     inner.appendChild(bc);
