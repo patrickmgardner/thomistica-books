@@ -84,14 +84,14 @@
     // Use the FULL path of the title page. Pages that have no back-link at
     // the top (such as the book-level contents pages) find their settings
     // through the folder, which only works with a full path.
-    "Rickaby-SCG/gc.htm": {
+    "Rickaby-SCG/": {
       units: ["Book", "Chapter"],
       // "Book 1" links to gc_bk1.htm, "Book 2" to gc_bk2.htm, and so on
       // (same folder as the title page).
       levelPages: "gc_bk{n}.htm"
     },
 
-    "DeWulf/homp.htm": {
+    "DeWulf/": {
       unit: "Article"
       // Add divisions once you have the ranges, for example:
       // , divisions: [
