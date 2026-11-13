@@ -84,7 +84,7 @@
     // Use the FULL path of the title page. Pages that have no back-link at
     // the top (such as the book-level contents pages) find their settings
     // through the folder, which only works with a full path.
-    "Rickaby-SCG/": {
+    "Rickaby-SCG/gc.htm": {
       units: ["Book", "Chapter"],
       // "Book 1" links to gc_bk1.htm, "Book 2" to gc_bk2.htm, and so on
       // (same folder as the title page).
