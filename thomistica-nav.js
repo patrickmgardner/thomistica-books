@@ -77,11 +77,11 @@
 
     // Key can be just the file name ("gc.htm") or the full path
     // ("GC/gc.htm") if two works share a file name.
-    "gc.htm": {
+    "Rickaby-SCG/": {
       units: ["Book", "Chapter"]
     },
 
-    "DeWulf/homp.htm": {
+    "DeWulf/": {
       unit: "Article"
       // Add divisions once you have the ranges, for example:
       // , divisions: [
