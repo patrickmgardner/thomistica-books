@@ -91,7 +91,7 @@
       levelPages: "gc_bk{n}.htm"
     },
 
-    "DeWulf/": {
+    "DeWulf/homp.htm": {
       unit: "Article"
       // Add divisions once you have the ranges, for example:
       // , divisions: [
@@ -373,37 +373,56 @@
     if (next && next.tagName === "HR") next.style.display = "none";
   }
 
-  /* ---------- 5. replace  << ======= >>  with a pager ----------
+  /* ---------- 5. replace the old  << ... >>  navigation with a pager ----------
    *
-   *  For each "<<" / ">>" link, climb to the largest ancestor whose text is
-   *  only  < > =  and whitespace, and replace that whole element.
+   *  Old pages use either   << ======= >>        (middle is just symbols)
+   *                    or   << Book Title >>     (middle is a real link to
+   *                                               the title page).
+   *  For each "<<" / ">>" link we climb to the largest ancestor that holds
+   *  ONLY links plus symbol text (< > = | and whitespace), has at most three
+   *  links, and is not the body. That element is the whole old navigation,
+   *  and it is replaced by one pager. Any link other than << and >> in the
+   *  group is kept as a middle button.
    */
+  var SYMBOL_ONLY = /^[\s<>=|·•–—-]*$/;
+
+  function isNavGroup(node) {
+    if (node.querySelectorAll("a[href]").length > 3) return false;
+    var clone = node.cloneNode(true);
+    Array.prototype.forEach.call(clone.querySelectorAll("a"), function (x) {
+      x.parentNode.removeChild(x);
+    });
+    return SYMBOL_ONLY.test(clone.textContent);
+  }
+
   function upgradeNav(ctx) {
     var anchors = Array.prototype.slice.call(
       document.body.querySelectorAll("a[href]"));
     var handled = [];
+    var currentPath = pathOf(location.href);
 
     anchors.forEach(function (a) {
       var t = norm(a.textContent);
       if (t !== "<<" && t !== ">>") return;
 
       var box = a;
-      while (box.parentNode && box.parentNode !== document.body) {
-        var parent = box.parentNode;
-        var leftover = norm(parent.textContent).replace(/[<>=\s]/g, "");
-        if (leftover !== "") break;
-        box = parent;
+      while (box.parentNode &&
+             box.parentNode !== document.body &&
+             box.parentNode !== document.documentElement &&
+             isNavGroup(box.parentNode)) {
+        box = box.parentNode;
       }
       if (handled.indexOf(box) !== -1) return;
       handled.push(box);
 
-      var prev = null, next = null;
-      var inner = box.querySelectorAll ? box.querySelectorAll("a[href]") : [];
-      var list = box.tagName === "A" ? [box] : Array.prototype.slice.call(inner);
+      var prev = null, next = null, extras = [];
+      var list = (box.tagName === "A") ? [box] :
+        Array.prototype.slice.call(box.querySelectorAll("a[href]"));
       list.forEach(function (x) {
         var xt = norm(x.textContent);
         if (xt === "<<" && !prev) prev = x.getAttribute("href");
-        if (xt === ">>" && !next) next = x.getAttribute("href");
+        else if (xt === ">>" && !next) next = x.getAttribute("href");
+        else if (xt && !NAV_SYMBOLS.test(xt)) extras.push(x);
       });
 
       // On the title page "<<" only wraps around to the last page: drop it.
@@ -413,12 +432,32 @@
       pager.appendChild(prev
         ? el("a", { className: "thn-prev", href: prev }, ["‹ Previous"])
         : el("span", { className: "thn-spacer" }));
-      // Skip the middle link when "Previous" already goes to the title page.
-      var prevIsToc = prev && pathOf(prev) === ctx.tocPath;
-      if (ctx.tocHref && !ctx.onTitlePage && !prevIsToc) {
-        pager.appendChild(
-          el("a", { className: "thn-toc", href: ctx.tocHref }, ["Title page"]));
+
+      // Middle button(s): the group's own links if it has any, otherwise
+      // a "Title page" link built from the page's top link.
+      var middle = [];
+      if (extras.length) {
+        extras.forEach(function (x) {
+          var href = x.getAttribute("href");
+          var p = pathOf(href);
+          if (p === currentPath) return;                  // link to itself
+          if (prev && p === pathOf(prev)) return;         // duplicates Previous
+          middle.push({
+            href: href,
+            label: (ctx.tocPath && p === ctx.tocPath) ? "Title page"
+                                                      : norm(x.textContent)
+          });
+        });
+      } else {
+        var prevIsToc = prev && pathOf(prev) === ctx.tocPath;
+        if (ctx.tocHref && !ctx.onTitlePage && !prevIsToc) {
+          middle.push({ href: ctx.tocHref, label: "Title page" });
+        }
       }
+      middle.forEach(function (m) {
+        pager.appendChild(el("a", { className: "thn-toc", href: m.href }, [m.label]));
+      });
+
       pager.appendChild(next
         ? el("a", { className: "thn-next", href: next }, ["Next ›"])
         : el("span", { className: "thn-spacer" }));
