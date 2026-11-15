@@ -99,6 +99,11 @@
       //   { from: 3,  label: "Chapter I" },
       //   { from: 12, label: "Chapter II" }
       // ]
+    },
+
+    "Conway/conway.htm": {
+      unit: "Part",
+      numerals: "roman"
     }
 
     // Other examples:
