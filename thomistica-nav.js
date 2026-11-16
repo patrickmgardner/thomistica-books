@@ -127,7 +127,11 @@
            { from: 12, label: "Part III", first: 1 },
            { from: 20, label: "Part IV",  first: 1 } 
          ]
-       }
+       },
+
+	"Bampton/mamt.htm": {
+		unit: "Lecture"
+	}
 
     // Other examples:
     // , "SomeLectures/lect.htm": { unit: "Lecture", numerals: "roman" }
