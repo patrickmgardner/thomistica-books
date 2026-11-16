@@ -77,6 +77,14 @@
    *                                          file number each one starts at.
    *                                          Adds a middle crumb, e.g.
    *                                          Book > Chapter I > Article 3.
+   *                                          Optional per division:
+   *                                          first: 1  restarts the chapter
+   *                                            numbering there (file `from`
+   *                                            becomes chapter 1; first: 0
+   *                                            marks an introduction page
+   *                                            with no chapter crumb);
+   *                                          href: "part4.htm"  makes the
+   *                                            label a link.
    * ====================================================================== */
 
   var WORKS = {
@@ -101,10 +109,25 @@
       // ]
     },
 
-    "Conway/conway.htm": {
-      unit: "Part",
-      numerals: "roman"
-    }
+	  "Conway/conway.htm": {
+		  unit: "Part",
+		  numerals: "roman"
+	  },
+
+    // Template for a work whose files run 1, 2, 3 ... straight through but
+    // whose text is divided into Parts with chapters restarting in each.
+    // "from" is the number of the first file in each Part (emt20.htm -> 20).
+    // Fill in the real numbers, remove the leading // marks, and add a comma
+    // after the preceding entry's closing brace.
+    "Elmendorf/emt.htm": {
+         unit: "Chapter", numerals: "roman",
+         divisions: [
+           { from: 1,  label: "Part I",   first: 1 },
+           { from: 8,  label: "Part II",  first: 1 },
+           { from: 12, label: "Part III", first: 1 },
+           { from: 20, label: "Part IV",  first: 1 } 
+         ]
+       }
 
     // Other examples:
     // , "SomeLectures/lect.htm": { unit: "Lecture", numerals: "roman" }
@@ -303,17 +326,21 @@
     // Address of an intermediate level's page (e.g. Book 1), from
     // cfg.levelPages: either { "1": "gc1.htm", ... } or a template such as
     // "gc{n}.htm". Relative addresses are resolved against the title page.
-    function levelHref(prefix) {
-      var lp = cfg.levelPages;
-      if (!lp) return null;
-      var rel = (typeof lp === "string") ? lp.replace(/\{n\}/g, prefix)
-                                         : lp[prefix];
+    function resolveRel(rel) {
       if (!rel) return null;
       try {
         return new URL(rel, new URL(tocHref || location.href, location.href)).href;
       } catch (e) {
         return null;
       }
+    }
+
+    function levelHref(prefix) {
+      var lp = cfg.levelPages;
+      if (!lp) return null;
+      var rel = (typeof lp === "string") ? lp.replace(/\{n\}/g, prefix)
+                                         : lp[prefix];
+      return resolveRel(rel);
     }
 
     // Crumbs after the book title: [{ text: "Book 1", href: "..." | null }]
@@ -340,7 +367,7 @@
         (cfg.divisions || []).forEach(function (d) {
           if (d.from <= num && (!div || d.from >= div.from)) div = d;
         });
-        if (div) crumbs.push({ text: div.label, href: null });
+        if (div) crumbs.push({ text: div.label, href: resolveRel(div.href) });
 
         if (num === 0) {
           if (!div && cfg.zero !== false) {
@@ -348,9 +375,15 @@
           }
         } else {
           var unit = (cfg.unit === undefined) ? SETTINGS.defaultUnit : cfg.unit;
-          var n1 = num + (cfg.offset || 0);
+          // A division with `first` restarts the numbering: the file where
+          // it begins is chapter `first` (use 0 for an introduction page,
+          // which then gets no chapter crumb), and later files count up
+          // from there. Without `first`, numbering simply continues.
+          var n1 = (div && div.first !== undefined)
+            ? num - div.from + div.first
+            : num + (cfg.offset || 0);
           if (unit && n1 >= 1) {
-            crumbs.push({ text: unit + " " + fmt(n1, 0), href: null });
+            crumbs.push({ text: unit + "\u00a0" + fmt(n1, 0), href: null });
           }
         }
       }
