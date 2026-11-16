@@ -120,7 +120,8 @@
     // Fill in the real numbers, remove the leading // marks, and add a comma
     // after the preceding entry's closing brace.
     "Elmendorf/emt.htm": {
-         unit: "Chapter", numerals: "roman",
+         unit: "Chapter",
+		 numerals: "roman",
          divisions: [
            { from: 1,  label: "Part I",   first: 1 },
            { from: 8,  label: "Part II",  first: 1 },
@@ -130,7 +131,8 @@
        },
 
 	"Bampton/mamt.htm": {
-		unit: "Lecture"
+		unit: "Lecture",
+		numerals: "roman"
 	}
 
     // Other examples:
