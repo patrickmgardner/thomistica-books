@@ -154,11 +154,11 @@
 	},
 
 	"Rickaby-Principles/first.htm": {
-		zero: "Preface",
 		offset: -1,
 		divisions: [
-			{ from: 2, label: "Part I", first: 1},
-			{ from: 15, label: "Part II", first: 1}
+			{ from: 1, label: "Preface" },
+			{ from: 2, label: "Part I", first: 1 },
+			{ from: 16, label: "Part II", first: 1 }
 		],
 		numerals: "roman"
 	}
