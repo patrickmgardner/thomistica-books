@@ -145,6 +145,12 @@
 		  { from: 24, label: "Scholastic"},
 		  { from: 48, label: "Modern"}
 		]
+	},
+
+	"Rickaby-Moral/moral.htm": {
+		zero: "Preface",
+		units: ["Part", "Chapter"],
+		numerals: "roman"
 	}
 
     // Other examples:
