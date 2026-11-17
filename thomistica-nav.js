@@ -121,7 +121,7 @@
     // after the preceding entry's closing brace.
     "Elmendorf/emt.htm": {
          unit: "Chapter",
-		 numerals: "roman",
+	 numerals: "roman",
          divisions: [
            { from: 1,  label: "Part I",   first: 1 },
            { from: 8,  label: "Part II",  first: 1 },
@@ -136,8 +136,15 @@
 	},
 
 	"Turner/hop.htm": {
-		numerals: "roman",
-		zero: "Introduction; Oriental Philosophy"
+  		numerals: "roman",
+		divisions: [
+		  { from: 0, label: "Part I.A: Oriental"},
+		  { from: 1, label: "Part I.B: Greek"},
+		  { from: 19, label: "Part I.C: Greco-Oriental"},
+		  { from: 21, label: "Part II.A: Patristic"},
+		  { from: 24, label: "Part II.B: Scholastic"},
+		  { from: 48, label: "Part II.C: Modern"}
+		]
 	}
 
     // Other examples:
