@@ -133,6 +133,11 @@
 	"Bampton/mamt.htm": {
 		unit: "Lecture",
 		numerals: "roman"
+	},
+
+	"Turner/hop.htm": {
+		numerals: "roman",
+		zero: "Introduction; Oriental Philosophy"
 	}
 
     // Other examples:
