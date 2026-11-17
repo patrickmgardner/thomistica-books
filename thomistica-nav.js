@@ -138,12 +138,12 @@
 	"Turner/hop.htm": {
   		numerals: "roman",
 		divisions: [
-		  { from: 0, label: "Part I.A: Oriental"},
-		  { from: 1, label: "Part I.B: Greek"},
-		  { from: 19, label: "Part I.C: Greco-Oriental"},
-		  { from: 21, label: "Part II.A: Patristic"},
-		  { from: 24, label: "Part II.B: Scholastic"},
-		  { from: 48, label: "Part II.C: Modern"}
+		  { from: 0, label: "Oriental"},
+		  { from: 1, label: "Greco-Roman"},
+		  { from: 19, label: "Greco-Oriental"},
+		  { from: 21, label: "Patristic"},
+		  { from: 24, label: "Scholastic"},
+		  { from: 48, label: "Modern"}
 		]
 	}
 
