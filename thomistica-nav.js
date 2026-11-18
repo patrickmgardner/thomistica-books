@@ -99,10 +99,6 @@
       levelPages: "gc_bk{n}.htm"
     },
 
-	"Rickaby-Schol/scholas1.htm": {
-		title: "Scholasticism"
-	},
-
     "DeWulf/homp.htm": {
       unit: "Article"
       // Add divisions once you have the ranges, for example:
@@ -113,10 +109,10 @@
       // ]
     },
 
-	  "Conway/conway.htm": {
-		  unit: "Part",
-		  numerals: "roman"
-	  },
+    "Conway/conway.htm": {
+	unit: "Part",
+	numerals: "roman"
+    },
 
     // Template for a work whose files run 1, 2, 3 ... straight through but
     // whose text is divided into Parts with chapters restarting in each.
@@ -124,48 +120,47 @@
     // Fill in the real numbers, remove the leading // marks, and add a comma
     // after the preceding entry's closing brace.
     "Elmendorf/emt.htm": {
-         unit: "Chapter",
-	 numerals: "roman",
-         divisions: [
-           { from: 1,  label: "Part I",   first: 1 },
-           { from: 8,  label: "Part II",  first: 1 },
-           { from: 12, label: "Part III", first: 1 },
-           { from: 20, label: "Part IV",  first: 1 } 
-         ]
-       },
+	unit: "Chapter", numerals: "roman",
+      	divisions: [
+         { from: 1,  label: "Part I",   first: 1 },   
+         { from: 8,  label: "Part II",  first: 1 },  
+         { from: 12, label: "Part III", first: 1 }, 
+         { from: 20, label: "Part IV",  first: 1 } 
+     	]
+    },
 
-	"Bampton/mamt.htm": {
-		unit: "Lecture",
-		numerals: "roman"
-	},
+    "Bampton/mamt.htm": {
+	unit: "Lecture",
+	numerals: "roman"
+    },
 
-	"Turner/hop.htm": {
-  		numerals: "roman",
-		divisions: [
-		  { from: 0, label: "Oriental"},
-		  { from: 1, label: "Greco-Roman"},
-		  { from: 19, label: "Greco-Oriental"},
-		  { from: 21, label: "Patristic"},
-		  { from: 24, label: "Scholastic"},
-		  { from: 48, label: "Modern"}
-		]
-	},
+    "Turner/hop.htm": {
+	numerals: "roman",
+	divisions: [
+	  { from: 0, label: "Oriental" },
+	  { from: 1, label: "Greco-Roman" },
+	  { from: 19, label: "Greco-Oriental" },
+	  { from: 21, label: "Patristic" },
+	  { from: 24, label: "Scholastic" },
+	  { from: 48, label: "Modern" }
+	]
+    },
 
-	"Rickaby-Moral/moral.htm": {
-		zero: "Preface",
-		units: ["Part", "Chapter"],
-		numerals: "roman"
-	},
+    "Rickaby-Moral/moral.htm": {
+	zero: "Preface",
+	units: [ "Part", "Chapter" ],
+	numerals: "romans"
+    }
 
-	"Rickaby-Principles/first.htm": {
-		offset: -1,
-		divisions: [
-			{ from: 1, label: "Preface" },
-			{ from: 2, label: "Part I", first: 1 },
-			{ from: 16, label: "Part II", first: 1 }
-		],
-		numerals: "roman"
-	}
+    "Rickaby-Principles/first.htm": {
+        offset: -1,
+        divisions: [
+          { from: 1, label: "Preface" },
+          { from: 2, label: "Part I", first: 1 },
+          { from: 16, label: "Part II", first: 1 }
+        ],
+        numerals: "roman"
+     }
 
     // Other examples:
     // , "SomeLectures/lect.htm": { unit: "Lecture", numerals: "roman" }
@@ -235,23 +230,59 @@
    *  The file number is a trailing 1-3 digit number anywhere at the END of
    *  the whole title (it may come after the author, as in the Azarias case).
    */
+  function fromRoman(str) {
+    var v = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+    var n = 0;
+    for (var i = 0; i < str.length; i++) {
+      var c = v[str.charAt(i)], next = v[str.charAt(i + 1)];
+      n += (next && next > c) ? -c : c;
+    }
+    return n;
+  }
+
+  // "<book> : <unit word> <number>" at the end of a title
+  var UNIT_TITLE = new RegExp(
+    "^(.*?)(?:\\s*[:,;\\u2013\\u2014-]\\s*|\\s+)" +
+    "(chapter|lecture|part|book|article|section|question|appendix|letter|" +
+    "sermon|essay|discourse|treatise|dialogue)" +
+    "\\s+([IVXLCDM]+|\\d{1,3}(?:\\.\\d{1,3})*)$", "i");
+
   function parsePageTitle() {
     var t = norm(document.title)
       .replace(/^Jacques Maritain Center:\s*/i, "");
 
-    // Trailing number, possibly multi-level: "1", "003", "1.11", "3.2.5"
-    var nums = null;
-    var m = t.match(/^(.*?)\s+(\d{1,3}(?:\.\d{1,3})*)$/);
-    if (m) {
-      nums = m[2].split(".").map(function (x) { return parseInt(x, 10); });
-      t = m[1];
+    var nums = null, label = null, roman = false;
+
+    // 1) A unit word and a number at the end of the title, roman or arabic:
+    //    "Scholasticism: Chapter I", "Title, Lecture 4", "Title - Part II".
+    //    The word becomes the crumb label and the numeral style is kept.
+    var lm = t.match(UNIT_TITLE);
+    if (lm && (/^[IVXLCDM]+$/.test(lm[3]) || /^\d/.test(lm[3]))) {
+      label = lm[2].charAt(0).toUpperCase() + lm[2].slice(1).toLowerCase();
+      if (/^[IVXLCDM]+$/.test(lm[3])) {
+        nums = [fromRoman(lm[3])];
+        roman = true;
+      } else {
+        nums = lm[3].split(".").map(function (x) { return parseInt(x, 10); });
+      }
+      t = lm[1];
+    } else {
+      // 2) Just a trailing number, possibly multi-level:
+      //    "1", "003", "1.11", "3.2.5"
+      var m = t.match(/^(.*?)\s+(\d{1,3}(?:\.\d{1,3})*)$/);
+      if (m) {
+        nums = m[2].split(".").map(function (x) { return parseInt(x, 10); });
+        t = m[1];
+      }
     }
 
     var parts = t.split(/\s+\/\s+/);
     return {
       book: parts[0],
       author: (parts[1] || "").replace(/^by\s+/i, ""),
-      nums: nums                       // null, or e.g. [3] or [1, 11]
+      nums: nums,                      // null, or e.g. [3] or [1, 11]
+      label: label,                    // "Chapter", "Lecture", ... or null
+      roman: roman                     // true if the title used I, II, IV ...
     };
   }
 
@@ -358,6 +389,7 @@
 
     function fmt(n, level) {
       var style = Array.isArray(cfg.numerals) ? cfg.numerals[level] : cfg.numerals;
+      if (style === undefined && info.roman) style = "roman";
       return style === "roman" ? toRoman(n) : String(n);
     }
 
@@ -412,7 +444,8 @@
             crumbs.push({ text: cfg.zero || SETTINGS.zeroLabel, href: null });
           }
         } else {
-          var unit = (cfg.unit === undefined) ? SETTINGS.defaultUnit : cfg.unit;
+          var unit = (cfg.unit === undefined)
+            ? (info.label || SETTINGS.defaultUnit) : cfg.unit;
           // A division with `first` restarts the numbering: the file where
           // it begins is chapter `first` (use 0 for an introduction page,
           // which then gets no chapter crumb), and later files count up
