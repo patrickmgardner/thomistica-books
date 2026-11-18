@@ -117,13 +117,10 @@
     },
 
     "DeWulf/homp.htm": {
-      unit: "Article"
-      // Add divisions once you have the ranges, for example:
-      // , divisions: [
-      //   { from: 1,  label: "Introduction" },
-      //   { from: 3,  label: "Chapter I" },
-      //   { from: 12, label: "Chapter II" }
-      // ]
+      unit: "Article",
+      divisions: [
+        { from: 474, label: "Index", letters: true }
+      ]
     },
 
     "Conway/conway.htm": {
