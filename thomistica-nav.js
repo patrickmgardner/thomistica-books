@@ -92,6 +92,7 @@
     // Use the FULL path of the title page. Pages that have no back-link at
     // the top (such as the book-level contents pages) find their settings
     // through the folder, which only works with a full path.
+
     "Rickaby-SCG/gc.htm": {
       units: ["Book", "Chapter"],
       // "Book 1" links to gc_bk1.htm, "Book 2" to gc_bk2.htm, and so on
@@ -119,8 +120,10 @@
     // "from" is the number of the first file in each Part (emt20.htm -> 20).
     // Fill in the real numbers, remove the leading // marks, and add a comma
     // after the preceding entry's closing brace.
+
     "Elmendorf/emt.htm": {
-	unit: "Chapter", numerals: "roman",
+	unit: "Chapter",
+	numerals: "roman",
       	divisions: [
          { from: 1,  label: "Part I",   first: 1 },   
          { from: 8,  label: "Part II",  first: 1 },  
@@ -148,9 +151,9 @@
 
     "Rickaby-Moral/moral.htm": {
 	zero: "Preface",
-	units: [ "Part", "Chapter" ],
-	numerals: "romans"
-    }
+	units: ["Part","Chapter"],
+	numerals: "roman"
+    },
 
     "Rickaby-Principles/first.htm": {
         offset: -1,
