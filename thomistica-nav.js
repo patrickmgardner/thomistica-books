@@ -184,7 +184,11 @@
 	  { from: 14, label: "Appendix", only: true },
 	  { from: 15, label: "Index",    only: true }
 	]
-    }
+    },
+
+  "Coppens-Catholic/sscr.htm": {
+	  zero: "Introduction"
+  }
 
     // Other examples:
     // , "SomeLectures/lect.htm": { unit: "Lecture", numerals: "roman" }
