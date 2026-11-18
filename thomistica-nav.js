@@ -163,7 +163,15 @@
           { from: 16, label: "Part II", first: 1 }
         ],
         numerals: "roman"
-     }
+     },
+
+    "Azarias/aatcc.htm": {
+	numerals: "roman",
+	divisions: [
+	  { from: 14, label: "Appendix" },
+	  { from: 15, label: "Index" }
+	]
+    }
 
     // Other examples:
     // , "SomeLectures/lect.htm": { unit: "Lecture", numerals: "roman" }
