@@ -93,7 +93,14 @@
    *                                            instead of the work's unit, so
    *                                            several pages count Appendix I,
    *                                            II ... (give it first: 1, and
-   *                                            leave out label).
+   *                                            leave out label);
+   *                                          letters: true  one page per
+   *                                            letter: Index > A, B, C ...
+   *                                            The file at `from` is the menu
+   *                                            page (just "Index"); with
+   *                                            first: 1 it is already A.
+   *                                          (A range where every file should
+   *                                          just read "Index": only: true.)
    * ====================================================================== */
 
   var WORKS = {
@@ -472,6 +479,14 @@
 
         if (divIsPage) {
           // nothing more to add
+        } else if (div && div.letters) {
+          // Lettered pages (an Index with one page per letter): the file at
+          // `from` is the menu page (no letter), the next is A, then B ...
+          // With first: 1 the file at `from` is already A.
+          var li = num - div.from + (div.first !== undefined ? div.first : 0);
+          if (li >= 1 && li <= 26) {
+            crumbs.push({ text: String.fromCharCode(64 + li), href: null });
+          }
         } else if (num === 0) {
           if (!div && cfg.zero !== false) {
             crumbs.push({ text: cfg.zero || SETTINGS.zeroLabel, href: null });
