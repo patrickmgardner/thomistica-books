@@ -99,6 +99,10 @@
       levelPages: "gc_bk{n}.htm"
     },
 
+	"Rickaby-Schol/scholas1.htm": {
+		title: "Scholasticism"
+	},
+
     "DeWulf/homp.htm": {
       unit: "Article"
       // Add divisions once you have the ranges, for example:
