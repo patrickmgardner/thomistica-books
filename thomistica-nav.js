@@ -84,7 +84,16 @@
    *                                            marks an introduction page
    *                                            with no chapter crumb);
    *                                          href: "part4.htm"  makes the
-   *                                            label a link.
+   *                                            label a link;
+   *                                          only: true  the label REPLACES
+   *                                            the chapter crumb: use for a
+   *                                            single "Appendix" or "Index"
+   *                                            page (Book > Appendix);
+   *                                          unit: "Appendix"  uses that word
+   *                                            instead of the work's unit, so
+   *                                            several pages count Appendix I,
+   *                                            II ... (give it first: 1, and
+   *                                            leave out label).
    * ====================================================================== */
 
   var WORKS = {
@@ -168,8 +177,8 @@
     "Azarias/aatcc.htm": {
 	numerals: "roman",
 	divisions: [
-	  { from: 14, label: "Appendix" },
-	  { from: 15, label: "Index" }
+	  { from: 14, label: "Appendix", only: true },
+	  { from: 15, label: "Index",    only: true }
 	]
     }
 
@@ -432,7 +441,12 @@
         // Multi-level: units ["Book", "Chapter"] + title "GC 1.11"
         //   -> Book 1 > Chapter 11   (and "GC 1" -> Book 1)
         // Every level except the last can link to its own page.
-        nums.forEach(function (n, i) {
+        if (nums.length === 1 && nums[0] === 0) {
+          // file 0 (front matter): the work's `zero` label, not "Part 0"
+          if (cfg.zero !== false) {
+            crumbs.push({ text: cfg.zero || SETTINGS.zeroLabel, href: null });
+          }
+        } else nums.forEach(function (n, i) {
           var last = (i === nums.length - 1);
           crumbs.push({
             text: (cfg.units[i] || "Section") + " " + fmt(n, i),
@@ -448,15 +462,25 @@
         (cfg.divisions || []).forEach(function (d) {
           if (d.from <= num && (!div || d.from >= div.from)) div = d;
         });
-        if (div) crumbs.push({ text: div.label, href: resolveRel(div.href) });
+        // A division with `only: true` IS the page ("Appendix", "Index"):
+        // its label is the last crumb and no chapter crumb follows.
+        var divIsPage = !!(div && div.only);
+        if (div && div.label) {
+          crumbs.push({ text: div.label,
+                        href: divIsPage ? null : resolveRel(div.href) });
+        }
 
-        if (num === 0) {
+        if (divIsPage) {
+          // nothing more to add
+        } else if (num === 0) {
           if (!div && cfg.zero !== false) {
             crumbs.push({ text: cfg.zero || SETTINGS.zeroLabel, href: null });
           }
         } else {
-          var unit = (cfg.unit === undefined)
-            ? (info.label || SETTINGS.defaultUnit) : cfg.unit;
+          // A division's own `unit` (e.g. "Appendix") replaces the work's.
+          var unit = (div && div.unit !== undefined) ? div.unit
+            : (cfg.unit === undefined) ? (info.label || SETTINGS.defaultUnit)
+            : cfg.unit;
           // A division with `first` restarts the numbering: the file where
           // it begins is chapter `first` (use 0 for an introduction page,
           // which then gets no chapter crumb), and later files count up
