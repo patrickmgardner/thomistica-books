@@ -71,6 +71,12 @@
    *                                          Chapter 1, use offset: -1).
    *    zero      "Preface" / false           Label for file 000, or false
    *                                          to show nothing for it.
+   *    nav       false                       Keep the page's own footer links
+   *                                          (when they carry chapter titles).
+   *    parent    {title:"...", href:"x.htm"} An overall work above this one:
+   *                                          Parent > Book > Chapter.
+   *    pages     { "file.htm": "Label" }     One-off crumb for a single file
+   *                                          (replaces the computed crumbs).
    *    title     "Short Title"               Override the book title shown
    *                                          in the breadcrumb.
    *    divisions [ {from: N, label: "..."} ] Named groups of files, by the
@@ -113,7 +119,10 @@
       units: ["Book", "Chapter"],
       // "Book 1" links to gc_bk1.htm, "Book 2" to gc_bk2.htm, and so on
       // (same folder as the title page).
-      levelPages: "gc_bk{n}.htm"
+      levelPages: "gc_bk{n}.htm",
+      // This work's own footer links carry the chapter titles; keep them
+      // instead of replacing them with a generic Previous / Next.
+      nav: false
     },
 
     "DeWulf/homp.htm": {
@@ -186,11 +195,27 @@
 	]
     },
 
-  "Coppens-Catholic/sscr.htm": {
-	  zero: "Introduction"
-  }
+    "Coppens-Catholic/sscr.htm": {
+	zero: "Introduction"
+    },
+
+    // Barnes: three works under one overall title page (westmin.htm).
+    // `parent` puts the overall title in front of each sub-work:
+    //   Westminster Lectures > The Witness of the Gospels > Chapter 3
+    // westmin.htm itself is listed so it is recognised as a title page.
+    "Barnes/westmin.htm": {},
+    "Barnes/barnes.htm": { parent: { title: "Westminster Lectures", href: "westmin.htm" } },
+    "Barnes/gerard.htm": { parent: { title: "Westminster Lectures", href: "westmin.htm" } },
+    "Barnes/saf.htm":    { parent: { title: "Westminster Lectures", href: "westmin.htm" } },
+
+    // Title pages whose <title> ends in a number: listing the page's own
+    // path makes it count as a title page, not as a numbered chapter.
+    "Louis/cp.htm": {},
+    "Harper/tmots.htm": {},
+    "Perrier/perrier.html": {},
 
     // Other examples:
+    // , "SomeWork/w.htm": { pages: { "w000.htm": "Preface", "w99.htm": "Appendix" } }
     // , "SomeLectures/lect.htm": { unit: "Lecture", numerals: "roman" }
     // , "Another/another.htm":   { unit: "Chapter", offset: -1 }
     // , "OneFolder/":            { unit: false }
@@ -217,7 +242,9 @@
   }
 
   function norm(s) {
-    return (s || "").replace(/\s+/g, " ").trim();
+    return (s || "")
+      .replace(/[\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]/g, "")
+      .replace(/\s+/g, " ").trim();
   }
 
   var NAV_SYMBOLS = /^[<>=\s]+$/;
@@ -277,9 +304,11 @@
 
   function parsePageTitle() {
     var t = norm(document.title)
-      .replace(/^Jacques Maritain Center:\s*/i, "");
+      .replace(/^Jacques Maritain Center:\s*/i, "")
+      .replace(/\.html?$/i, "")          // "gc1_11.htm" typed into a title
+      .replace(/\s*:\s*$/, "");         // trailing colon
 
-    var nums = null, label = null, roman = false;
+    var nums = null, label = null, roman = false, sfx = "", named = "";
 
     // 1) A unit word and a number at the end of the title, roman or arabic:
     //    "Scholasticism: Chapter I", "Title, Lecture 4", "Title - Part II".
@@ -297,10 +326,16 @@
     } else {
       // 2) Just a trailing number, possibly multi-level:
       //    "1", "003", "1.11", "3.2.5"
-      var m = t.match(/^(.*?)\s+(\d{1,3}(?:\.\d{1,3})*)$/);
+      //    A single trailing letter is kept: "1.100a" -> 100, suffix "a"
+      var m = t.match(/^(.*?)\s+(\d{1,3}(?:\.\d{1,3})*)([a-z])?$/);
       if (m) {
         nums = m[2].split(".").map(function (x) { return parseInt(x, 10); });
+        sfx = m[3] || "";
         t = m[1];
+      } else {
+        // 3) "Book: Bibliography" -- no number, a named section
+        var cm = t.match(/^(.*?)\s*:\s*(.+)$/);
+        if (cm && cm[1]) { named = cm[2]; t = cm[1]; }
       }
     }
 
@@ -310,7 +345,9 @@
       author: (parts[1] || "").replace(/^by\s+/i, ""),
       nums: nums,                      // null, or e.g. [3] or [1, 11]
       label: label,                    // "Chapter", "Lecture", ... or null
-      roman: roman                     // true if the title used I, II, IV ...
+      roman: roman,                    // true if the title used I, II, IV ...
+      sfx: sfx,                        // "a" in "100a", or ""
+      named: named                     // "Bibliography" in "Book: Bibliography"
     };
   }
 
@@ -387,10 +424,20 @@
 
   function analyse() {
     var info = parsePageTitle();
-    var link = findTitleLink();
+    var link = findTitleLink();   // (reassigned below for title pages)
     var currentPath = pathOf(location.href);
 
-    var onTitlePage = (info.nums === null && !link);
+    var onTitlePage = (info.nums === null && !link && !info.named);
+
+    // A page listed in WORKS under its own path is that work's title page,
+    // even if its <title> ends in a number.
+    if (WORKS.hasOwnProperty(currentPath) &&
+        (!link || pathOf(link.getAttribute("href")) === currentPath)) {
+      onTitlePage = true;
+      info.nums = null;
+      info.named = "";
+      link = null;
+    }
 
     var book = info.book;
     var author = info.author;
@@ -444,6 +491,9 @@
     // Crumbs after the book title: [{ text: "Book 1", href: "..." | null }]
     var crumbs = [];
     var nums = info.nums;
+    if (!nums && info.named && link) {
+      crumbs.push({ text: info.named, href: null });
+    }
     if (nums) {
       if (cfg.units) {
         // Multi-level: units ["Book", "Chapter"] + title "GC 1.11"
@@ -511,7 +561,20 @@
       }
     }
 
+    // A trailing letter ("100a") stays on the number, except for file 0.
+    if (info.sfx && crumbs.length && nums && nums[nums.length - 1] !== 0) {
+      crumbs[crumbs.length - 1].text += info.sfx;
+    }
+
+    // One-off labels for single files (cfg.pages)
+    var fileName = currentPath.split("/").pop();
+    if (cfg.pages && cfg.pages.hasOwnProperty(fileName) && !onTitlePage) {
+      crumbs = [{ text: cfg.pages[fileName], href: null }];
+    }
+
     return {
+      parent: cfg.parent || null,
+      keepNav: cfg.nav === false,
       bookTitle: cfg.title || book,
       author: author,
       crumbs: crumbs,
@@ -751,6 +814,15 @@
     }, [SETTINGS.libraryName]));
     bc.appendChild(chev("thn-hide-sm"));
 
+    // Overall work above this one (Barnes: Westminster Lectures)
+    if (ctx.parent) {
+      bc.appendChild(el("a", {
+        className: "thn-fixed thn-hide-sm",
+        href: new URL(ctx.parent.href, location.href).href
+      }, [ctx.parent.title]));
+      bc.appendChild(chev("thn-hide-sm"));
+    }
+
     // Book title: a link on inner pages, plain text on the title page
     var hasCrumbs = ctx.crumbs.length > 0;
     var bookAttrs = { className: "thn-book" };
@@ -809,7 +881,7 @@
     var ctx = analyse();
 
     if (SETTINGS.hideTitleLink) hideTitleLink(ctx);
-    if (SETTINGS.upgradeBottomNav) upgradeNav(ctx);
+    if (SETTINGS.upgradeBottomNav && !ctx.keepNav) upgradeNav(ctx);
 
     injectStyles();
     document.body.insertBefore(buildHeader(ctx), document.body.firstChild);
