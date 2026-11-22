@@ -30,7 +30,7 @@
     defaultUnit: "Chapter",
 
     // Label shown for file number 0 (usually contents / front matter).
-    zeroLabel: "Preface",
+    zeroLabel: "Contents",
 
     // Hide the old "Title / by Author" link and the <hr> after it,
     // since the breadcrumb now does that job. Set to false to keep them.
@@ -120,6 +120,8 @@
       // "Book 1" links to gc_bk1.htm, "Book 2" to gc_bk2.htm, and so on
       // (same folder as the title page).
       levelPages: "gc_bk{n}.htm",
+      // This work's own footer links carry the chapter titles; keep them
+      // instead of replacing them with a generic Previous / Next.
       nav: false
     },
 
@@ -199,23 +201,18 @@
 
     // Barnes: three works under one overall title page (westmin.htm).
     // `parent` puts the overall title in front of each sub-work:
-    //   Westminster Lectures > The Witness of the Gospels > Chapter 3
+    //   Westminster Lectures > The Witness of the Gospels   (unit: false = no chapter crumb)
     // westmin.htm itself is listed so it is recognised as a title page.
     "Barnes/westmin.htm": {},
-    "Barnes/barnes.htm": { parent: { title: "Westminster Lectures", href: "westmin.htm" } },
-    "Barnes/gerard.htm": { parent: { title: "Westminster Lectures", href: "westmin.htm" } },
-    "Barnes/saf.htm":    { parent: { title: "Westminster Lectures", href: "westmin.htm" } },
+    "Barnes/barnes.htm": { unit: false, parent: { title: "Westminster Lectures", href: "westmin.htm" } },
+    "Barnes/gerard.htm": { unit: false, parent: { title: "Westminster Lectures", href: "westmin.htm" } },
+    "Barnes/saf.htm":    { unit: false, parent: { title: "Westminster Lectures", href: "westmin.htm" } },
 
     // Title pages whose <title> ends in a number: listing the page's own
     // path makes it count as a title page, not as a numbered chapter.
     "Louis/cp.htm": {},
     "Harper/tmots.htm": {},
     "Perrier/perrier.html": {},
-
-    "Slater/slater.htm": {
-	unit: "Section",
-	numerals: "roman"
-    }
 
     // Other examples:
     // , "SomeWork/w.htm": { pages: { "w000.htm": "Preface", "w99.htm": "Appendix" } }
