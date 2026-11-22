@@ -120,8 +120,6 @@
       // "Book 1" links to gc_bk1.htm, "Book 2" to gc_bk2.htm, and so on
       // (same folder as the title page).
       levelPages: "gc_bk{n}.htm",
-      // This work's own footer links carry the chapter titles; keep them
-      // instead of replacing them with a generic Previous / Next.
       nav: false
     },
 
@@ -213,6 +211,11 @@
     "Louis/cp.htm": {},
     "Harper/tmots.htm": {},
     "Perrier/perrier.html": {},
+
+    "Slater/slater.htm": {
+	unit: "Section",
+	numerals: "roman"
+    }
 
     // Other examples:
     // , "SomeWork/w.htm": { pages: { "w000.htm": "Preface", "w99.htm": "Appendix" } }
