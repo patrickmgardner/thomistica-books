@@ -30,7 +30,7 @@
     defaultUnit: "Chapter",
 
     // Label shown for file number 0 (usually contents / front matter).
-    zeroLabel: "Contents",
+    zeroLabel: "Preface",
 
     // Hide the old "Title / by Author" link and the <hr> after it,
     // since the breadcrumb now does that job. Set to false to keep them.
