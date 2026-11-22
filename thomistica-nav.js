@@ -203,10 +203,16 @@
     // `parent` puts the overall title in front of each sub-work:
     //   Westminster Lectures > The Witness of the Gospels   (unit: false = no chapter crumb)
     // westmin.htm itself is listed so it is recognised as a title page.
-    "Barnes/westmin.htm": {},
-    "Barnes/barnes.htm": { unit: false, parent: { title: "Westminster Lectures", href: "westmin.htm" } },
-    "Barnes/gerard.htm": { unit: false, parent: { title: "Westminster Lectures", href: "westmin.htm" } },
-    "Barnes/saf.htm":    { unit: false, parent: { title: "Westminster Lectures", href: "westmin.htm" } },
+    // Titles are set explicitly here because the <title> tags of these
+    // title pages are not reliable. zero: false drops the "Contents" crumb
+    // on the 00 pages; unit: false drops the chapter crumbs.
+    "Barnes/westmin.htm": { title: "Westminster Lectures" },
+    "Barnes/barnes.htm": { title: "The Witness of the Gospels", unit: false, zero: false,
+                           parent: { title: "Westminster Lectures", href: "westmin.htm" } },
+    "Barnes/gerard.htm": { title: "Modern Freethought", unit: false, zero: false,
+                           parent: { title: "Westminster Lectures", href: "westmin.htm" } },
+    "Barnes/saf.htm":    { title: "Science and Faith", unit: false, zero: false,
+                           parent: { title: "Westminster Lectures", href: "westmin.htm" } },
 
     // Title pages whose <title> ends in a number: listing the page's own
     // path makes it count as a title page, not as a numbered chapter.
@@ -431,8 +437,7 @@
 
     // A page listed in WORKS under its own path is that work's title page,
     // even if its <title> ends in a number.
-    if (WORKS.hasOwnProperty(currentPath) &&
-        (!link || pathOf(link.getAttribute("href")) === currentPath)) {
+    if (WORKS.hasOwnProperty(currentPath)) {
       onTitlePage = true;
       info.nums = null;
       info.named = "";
