@@ -196,7 +196,24 @@
     },
 
     "Coppens-Catholic/sscr.htm": {
-	zero: "Introduction"
+	zero: "Introduction",
+	divisions: [
+	  { from: 1, label: "Part I.I", first: 1 },
+	  { from: 8, label: "Part I.II", first: 1 },
+	  { from: 18, label: "Part II.I", first: 1 },
+	  { from: 23, label: "Part II.II", first: 1 },
+	  { from: 26, label: "Part II.III", first: 1 },
+	  { from: 28, label: "Part II.IV", first: 1 },
+	  { from: 31, label: "Part II.V", first: 1 },
+	  { from: 37, label: "Part II.VI", only: true },
+	  { from: 38, label: "Part III.I", only: true },
+	  { from: 39, label: "Part III.II", first: 1 },
+	  { from: 46, label: "Part III.III", first: 1 },
+	  { from: 52, label: "Part III.IV", first: 1 },
+	  { from: 54, label: "Appendix", only: true },
+	  { from: 55, label: "Index", only: true }
+	],
+	numerals: "roman"
     },
 
     // Barnes: three works under one overall title page (westmin.htm).
