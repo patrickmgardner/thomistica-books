@@ -200,7 +200,7 @@
 	divisions: [
 	  { from: 1, label: "Part I.I", first: 1 },
 	  { from: 8, label: "Part I.II", first: 1 },
-	  { from: 18, label: "Part II.I", first: 1 },
+	  { from: 17, label: "Part II.I", first: 0 },
 	  { from: 23, label: "Part II.II", first: 1 },
 	  { from: 26, label: "Part II.III", first: 1 },
 	  { from: 28, label: "Part II.IV", first: 1 },
